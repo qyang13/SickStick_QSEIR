@@ -5,6 +5,6 @@ account: qyang
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 1681321
-bundleId: 2758420
+bundleId: 2758682
 url: https://qyang.shinyapps.io/rshiny_sickstickmodel/
-when: 1580219672.51292
+when: 1580225351.20251
