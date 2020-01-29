@@ -8,83 +8,78 @@ source("helpers.R")
 
 # Define UI ----
 ui <- fluidPage(
+  # Basic Page Configuration
+  title = "SickStick Model Lite",
   theme = "bootstrap.css",
   titlePanel(img(src = "sickstick_logo.png", height = 100, width = 500)), br(), 
-  
   setSliderColor(rep("midnightblue",3), seq(1,3)),
   chooseSliderSkin("Flat"),
   
+  # Page Layout
   sidebarLayout(
     position = "left",
-    # Sidebar with sliders that demonstrate various available options
-    
+    # Side Panel for all the parameters
     sidebarPanel(
-      h3("SickStick Parameters"),
-      sliderInput("TP", "True Positive Rate (%):", 
-                  min=0, max=100, value=95, step=1),
-      sliderInput("TN", "True Negative Rate (%):", 
-                  min=0, max=100, value=95, step=1),
-      sliderInput("DQ", "Consecutive Negative Results in Quarantine (Days):",
-                  min=1, max=10, value=1, step=1),
-      selectInput("Stg", "SickStick Deployment Strategy:", choices = list("Everyday, Everyone" = 1, "Some days, Everyone" = 2,
-                                                                          "Everyday, Some people" = 3), selected = 1),
-          conditionalPanel(
-            condition = "input.Stg == 2",
-            sliderInput("Fq", "Every # of days:",
-                        min=1, max=15, value=5, step=1)),
-          conditionalPanel(
-            condition = "input.Stg == 3",
-            sliderInput("Fr", "Percentage of population (%):",
-                        min=0, max=100, value=10, step=1)),
-      
-      br(), hr(),
-      
-      radioButtons("OS", label = "Outbreak Scenario",
-                   choices = list("Common Cold (Ro = 0.5)" = 1, "Influenza (Ro = 0.9)" = 2, 
-                                  "Ebola (Ro = 2.0)" = 3, "2019-CoV (Ro = 3.5)" = 4, "Measles (Ro = 15.0)" = 5), 
-                   selected = 1),
-      
-      br(), hr(),
-      
-      selectInput("AO", label = "Advanced options", choices = list("Show" = 1, "Hide" = 2), selected = 2),
-      
-      conditionalPanel(
-        condition = "input.AO == 2"),
-      
-      conditionalPanel(
-        condition = "input.AO == 1",
-        sliderInput("beta", "Infection rate (%):", 
-                    min=0, max=200, value=100, step=1),
-        sliderInput("sigma", "Disease progression rate (%):", 
-                    min=1, max=200, value=100, step=1), 
-        sliderInput("gamma", "Recovery rate (%):", 
-                    min=1, max=200, value=40, step=1),
-        sliderInput("Rvr", "Infection Re-occurence rate (%):", 
-                    min=0, max=100, value=1, step=1))
+                  h3("SickStick Parameters"),
+                  sliderInput("TP", "True Positive Rate (%):", 
+                              min=0, max=100, value=95, step=1),
+                  sliderInput("TN", "True Negative Rate (%):", 
+                              min=0, max=100, value=95, step=1),
+                  sliderInput("DQ", "Consecutive Negative Results in Quarantine (Days):",
+                              min=1, max=10, value=1, step=1),
+                  selectInput("Stg", "SickStick Deployment Strategy:", choices = list("Everyday, Everyone" = 1, "Some days, Everyone" = 2,
+                                                                                      "Everyday, Some people" = 3), selected = 1),
+                              conditionalPanel(
+                                condition = "input.Stg == 2",
+                                sliderInput("Fq", "Every # of days:",
+                                            min=1, max=15, value=5, step=1)),
+                              conditionalPanel(
+                                condition = "input.Stg == 3",
+                                sliderInput("Fr", "Percentage of population (%):",
+                                            min=0, max=100, value=10, step=1)),
+                  br(), hr(),
+                  radioButtons("OS", label = "Outbreak Scenario",
+                               choices = list("Common Cold (Ro = 0.5)" = 1, "Influenza (Ro = 0.9)" = 2, 
+                                              "Ebola (Ro = 2.0)" = 3, "2019-CoV (Ro = 3.5)" = 4, "Measles (Ro = 15.0)" = 5), 
+                               selected = 1),
+                  br(), hr(),
+                  selectInput("AO", label = "Advanced options", choices = list("Show" = 1, "Hide" = 2), selected = 2),
+                              conditionalPanel(
+                                condition = "input.AO == 1",
+                                sliderInput("beta", "Infection rate (%):", 
+                                            min=0, max=200, value=100, step=1),
+                                sliderInput("sigma", "Disease progression rate (%):", 
+                                            min=1, max=200, value=100, step=1), 
+                                sliderInput("gamma", "Recovery rate (%):", 
+                                            min=1, max=200, value=40, step=1),
+                                sliderInput("Rvr", "Infection Re-occurence rate (%):", 
+                                            min=0, max=100, value=1, step=1))
     ),
     
-    # Show a table summarizing the values entered
+    # Main panel displaying results
     mainPanel(
-      width = 7,
-      tabsetPanel(position = "top",
-                  tabPanel("Total Population Kinetics Plot",
-                           plotOutput("graph1", width = "auto"),hr(),
-                           tableOutput("datatable0")),
-                  # tabPanel("Population Change Plot",plotOutput("graph2", width = "auto")),
-                  tabPanel("Data Summary without SickStick", tableOutput("datatable1")),
-                  tabPanel("Data Summary with SickStick", tableOutput("datatable2")))
-    )
-  ),br(), br(), hr(),
+              width = 7,
+              tabsetPanel(
+                          position = "top",
+                          tabPanel("Total Population Kinetics Plot",
+                                   plotOutput("graph1", width = "auto"),
+                                   hr(),
+                                   tableOutput("datatable0")),
+                          tabPanel("Data Summary without SickStick", tableOutput("datatable1")),
+                          tabPanel("Data Summary with SickStick", tableOutput("datatable2"))))
+    ),
+    br(), br(), hr(),
   
-  tags$footer(
-    class = "footer", 
-    a("Created by: "),
-    a("Qing Yang", 
-      href="mailto:qing.yang@colorado.edu"),
-    a(" and "),
-    a("Kate Bubar", 
-      href="")
-  )
+    # Footer for author information
+    tags$footer(
+                class = "footer", 
+                a("Created by: "),
+                a("Qing Yang", 
+                  href="mailto:qing.yang@colorado.edu"),
+                a(" and "),
+                a("Kate Bubar", 
+                  href="")
+    )
 )
 
 
@@ -122,6 +117,7 @@ server <- function(input, output) {
                         input$beta, # Probability of disease transmission per contact
                         input$gamma, # Probability of recovery per capita
                         input$sigma # Probability of disease progression
+                        #input$OS
                  )})
   
   # Table listing changes over time

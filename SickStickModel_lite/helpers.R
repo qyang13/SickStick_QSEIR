@@ -1,4 +1,12 @@
-# Define, unit time as days
+# Global Variables
+ST <- 48    # Average Serving time in month
+mu <- 1/ST  # Recruit/discharge rate
+Ip <- 0.01  # Initial infected population fraction
+Qr <- 0     # Self-report based quarantine rate
+Tm <- 365   # Observation time in days
+
+
+
 processData <- function(
                         TP, # TP of SickStick
                         TN, # TN of SickStick
@@ -10,12 +18,17 @@ processData <- function(
                         Stg, # Strategy
                         Fq, # Every # of days 
                         Fr, # Percentage of population (%) to use
-                        OS
+                        OS # Outbreak Scenarios
                         ){
-  
   if (OS==1) {
     beta = 0.4
     gamma = 0.79
+    sigma = 1
+  }
+  
+  else if (OS==2) {
+    beta = 1.4
+    gamma = 1.55
     sigma = 1
   }
   
@@ -25,10 +38,7 @@ processData <- function(
     sigma = 0.22
   }
   
-  ST <- 48
-  Ip <- 0.01
-  Qr <- 0
-  Tm <- 365
+
   # Population initialization
   Sv <- S <- (1-Ip) # Susceptible population
   Ev <- E <- Ip        # Exposed population
@@ -177,8 +187,6 @@ rknot <- function(
   gamma, # Probability of recovery per capita
   sigma # Probability of disease progression
 ){
-  ST <- 48
-  mu <- 1/ST
   ro <- beta*sigma/((gamma+mu)*(sigma+mu))
   ro
 }
