@@ -17,12 +17,12 @@ processData <- function(
                         ){
   
   # Population initialization
-  Sv <- S <- (1-Ip) # Susceptible population
-  Ev <- E <- Ip        # Exposed population
-  Iv <- I <-      # Infected population
-  Rv <- R <- 0        # Recovered population
-  QH <- 0          # Healthy quarantined
-  QI <- 0       # Infected quarantined
+  Sv <- S <- (1-Ip)     # Susceptible population
+  Ev <- E <- Ip         # Exposed population
+  Iv <- I <-  0         # Infected population
+  Rv <- R <- 0          # Recovered population
+  QH <- 0               # Healthy quarantined
+  QI <- 0               # Infected quarantined
   Qv <- 0
   SKv <- SK <- 0
   
