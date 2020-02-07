@@ -1,5 +1,5 @@
 # Global Variables
-ST <- 48    # Average Serving time in month
+ST <- 0    # Average Serving time in month
 mu <- 1/ST  # Recruit/discharge rate
 Ip <- 0.01  # Initial infected population fraction
 Qr <- 0     # Self-report based quarantine rate
@@ -17,26 +17,25 @@ processData <- function(
                         Rvr, # Reverse rate R - S, can also be considered as disease reocurrence rate
                         Stg, # Strategy
                         Fq, # Every # of days 
-                        Fr, # Percentage of population (%) to use
-                        OS # Outbreak Scenarios
+                        Fr # Percentage of population (%) to use
                         ){
-  if (OS==1) {
-    beta = 0.4
-    gamma = 0.79
-    sigma = 1
-  }
-  
-  else if (OS==2) {
-    beta = 1.4
-    gamma = 1.55
-    sigma = 1
-  }
-  
-  else if (OS==5) {
-    beta = 1.96
-    gamma = 0.13
-    sigma = 0.22
-  }
+  # if (OS==1) {
+  #   beta = 0.4
+  #   gamma = 0.79
+  #   sigma = 1
+  # }
+  # 
+  # else if (OS==2) {
+  #   beta = 1.6
+  #   gamma = 0.3
+  #   sigma = 1
+  # }
+  # 
+  # else if (OS==5) {
+  #   beta = 1.96
+  #   gamma = 0.13
+  #   sigma = 0.22
+  # }
   
 
   # Population initialization
@@ -177,7 +176,7 @@ processData <- function(
   # Turn the results into a datafrome , add a column with sickstick flag, 0 means no sickstick
   pot <- cbind(Sv, Ev, Iv, Rv, Qv, SKv)
   colnames(pot) <- c("Uninfected", "Exposed", "Infected", "Recovered", "Quarantined", "Total Sick Days")
-  pot 
+  return(sum(SKv)) 
 }
 
 
