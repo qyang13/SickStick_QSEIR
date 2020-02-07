@@ -1,160 +1,206 @@
 # Define, unit time as days
-processData <- function(
-                        ST, # Serve time (in months)
+runModel <- function(
+                        T_max, # Total time (days)
+                        N, # total number of people
+                        SickStick, # If using sickstick (TRUE or FALSE)
+  
                         TP, # TP of SickStick
                         TN, # TN of SickStick
-                        Ip, # Initial infected population percentage
-                        Tm, # Total time (days)
-                        beta, # Infection rate
+  
+                        R0, # r0 value for disease of interest
+                        # beta, # Transmission rate (contact rate * probability of transmission given contact)
                         gamma, # Recovery rate 
-                        sigma, # Disease progression rate
-                        Qr, # Sympotom-based quarantine rate
-                        DQ, # Number of days remained quarantined before clear
-                        Rvr, # Reverse rate R - S, can also be considered as disease reocurrence rate
-                        Stg, # Strategy
-                        Fq, # Every # of days 
-                        Fr # Percentage of population (%) to use
+                        sigma, # incubation rate
+                        r_Q, # Sympotom-based self quarantine rate
+                        r_RS, # Reverse rate R - S, can also be considered as disease reocurrence rate
+  
+                        # KMB 1/31: ignoring this params for now
+                        # T_Q = 1, # Number of days remained quarantined before clear
+                        # Stg = 1, # Strategy
+                        # Fq = 1, # Every # of days 
+                        # Fr = 1, # Percentage of population (%) to use
+                        # ST = 10 # Serve time (in months)
                         ){
   
-  # Population initialization
-  Sv <- S <- (1-Ip) # Susceptible population
-  Ev <- E <- Ip        # Exposed population
-  Iv <- I <-      # Infected population
-  Rv <- R <- 0        # Recovered population
-  QH <- 0          # Healthy quarantined
-  QI <- 0       # Infected quarantined
-  Qv <- 0
-  SKv <- SK <- 0
+  #### Initialization ####
+  # Initialize variables
+  TP <- TP/100
+  TN <- TN/100
   
   FN <- 1 - TP
   FP <- 1 - TN
   
-
-  if (ST==0) {mu <- 0} else {mu <- 1/ST}
+  T_recover <- 1/gamma
+  T_incubate <- 1/sigma
   
-  if (Stg == 1) {
-    Fq <- 0
-    Fr <- 1
-  }
+  beta = R0*gamma
   
-  if (Stg != 3) { # Everyday everyone, someday everyone
-  # Function definition
+  t = 1
   
-  dS <- function() mu - beta*S*I - mu*S + Rvr*R + (TN^DQ)*QH 
+  S <- 1
+  E <- 2
+  I <- 3
+  R <- 4
+  QS <- 5
+  QE <- 6
+  QI <- 7
   
-  dS_QH <- function() - FP*S
+  current_pop <- matrix(0L, nrow = 2, ncol = N)
+  rownames(current_pop) <- c("state", "num days in state")
   
-  dQH <- function() FP*S - mu*QH - (TN^DQ)*QH
+  total_pop <- matrix(0L, nrow = T_max, ncol = 7)
+  colnames(total_pop) <- c("S", "E", "I", "R", "QS", "QE", "QI")
   
-  dE <- function() beta*S*I - sigma*E*FN - mu*E - TP*E
+  # Set initial population in current_pop and total_pop
+  # KMB: 1% in I0 and 1% in E0, may need to change later
+  E0 <- round(N/100)
+  I0 <- round(N/100)
   
-  dI <- function() sigma*E*FN - mu*I - gamma*I - TP*I - Qr*I
+  current_pop[1, 1:E0] <- E
+  current_pop[1, (E0+1):(E0+I0)] <- I
+  current_pop[1, -(1:(E0+I0))] <- S
   
-  dQI <- function() TP*E + TP*I + Qr*I - gamma*QI - QI*mu
+  count_states <- table(current_pop[1,])
+  total_pop[t, S] <- count_states["1"]
+  total_pop[t, E] <- count_states["2"]
+  total_pop[t, I] <- count_states["3"]
   
-  dR <- function() gamma*I + gamma*QI - R*Rvr - R*mu
-  }
   
-  else { # Everyday, some people
-
-    dS <- function() mu - beta*S*I - mu*S + Rvr*R + (TN^DQ)*QH 
+  #### KMB: Implement "Serve time" later ####
+  #if (ST==0) {mu <- 0} # else {mu <- 1/ST}
+  #else {mu <- 0}
+  
+  # KMB: Implement "Strategy" later
+  #if (Stg == 1) {
+  #  Fq <- 0
+  #  Fr <- 1
+  #}
+  
+  
+  #### Simulation loop ####
+  for (t in 2:T_max) {
     
-    dS_QH <- function() - FP*S*Fr
+    # SickStick Phase: ####
+    # first compute individuals who move with bernoulli distribution, then update compartments accordingly
+    num_to_QI = 0
+    if (SickStick == TRUE) {
+      
+      for (i in 1:N){
+        if (current_pop[1,i] == S) {
+          move <- rbern(1, FP)
+          if (move == 1) current_pop[1,i] = QS
+        }
+        else if (current_pop[1,i] == E) {
+          move <- rbern(1, TP)
+          if (move == 1) current_pop[1,i] = QE
+        }
+        else if (current_pop[1,i] == I) {
+          move <- rbern(1, TP)
+          if (move == 1) {
+            current_pop[1,i] = QI
+            num_to_QI = num_to_QI + 1
+          } 
+        }
+        else if (current_pop[1,i] == QS) {
+          move <- rbern(1, TP)
+          if (move == 1) current_pop[1,i] = S
+        }
+        else if (current_pop[1,i] == QE) {
+          move <- rbern(1, FP)
+          if (move == 1) current_pop[1,i] = E
+        }
+      }
+    }
     
-    dQH <- function() FP*S*Fr - mu*QH - (TN^DQ)*QH
+    # Normal Disease Dynamics ###
+    # first compute if individual moves compartments, then move and update num days in compartment
+    # then compute overall number of people in each compartment
     
-    dE <- function() beta*S*I - sigma*E*FN*Fr - mu*E - TP*E*Fr - sigma*E*(1-Fr)
-    
-    dI <- function() sigma*E*FN*Fr + sigma*E*(1-Fr) - mu*I - gamma*I - TP*I*Fr - Qr*I 
-    
-    dQI <- function() TP*E*Fr + TP*I*Fr + Qr*I - gamma*QI - QI*mu
-    
-    dR <- function() gamma*I + gamma*QI - R*Rvr - R*mu
-  }
-
-  
-  
-  if ((Stg == 1) | (Stg == 3)) {
-  # Loop through periods
-  for (d in 1:Tm) {
-    ds = dS()
-    de = dE()
-    di = dI()
-    dr = dR()
-    dqi = dQI()
-    
-    
-    S = S + ds
-    E = E + de
-    I = I + di
-    R = R + dr
-    QI = QI + dqi
-    
-    QH = QH + dQH()
-    
-    S = S + dS_QH()
-
-    SK = QH + QI + I
-
-    
-    # Save the changes in vector form
-    Sv = c(Sv, S)
-    Ev = c(Ev, E)
-    Iv = c(Iv, I)
-    Rv = c(Rv, R)
-    Qv = c(Qv, QH+QI)
-    SKv = c(SKv, SK)
-  }}
-  else if (Stg == 2) {
-    tempTP <- TP
-    tempFP <- FP
-    tempFN <- FN
-    # Loop through periods
-    for (d in 1:Tm) {
-      if (d%%Fq!=0){
-        FP <- 0
-        TP <- 0
-        FN <- 1
-      } else {
-        FP = tempFP
-        TP = tempTP
-        FN = tempFN
+    for (i in 1:N){
+      if (current_pop[1,i] == S){
+        rate <- 1 - (1 - beta)^(total_pop[t-1, I] - num_to_QI) # I needs to be current_pop - sickstick quarantine 
+        move <- rbern(1, rate) 
+        if (move == 1){
+          current_pop[1,i] = E
+          current_pop[2,i] = 1
+        }
       }
       
-      ds = dS()
-      de = dE()
-      di = dI()
-      dr = dR()
-      dqi = dQI()
+      else if (current_pop[1,i] == E){
+        prob_success <- pnorm(current_pop[2,i], T_incubate, 1) #TODO: update sd based on certain disease
+        move <- rbern(1, prob_success)
+        if (move == 1){
+          current_pop[1,i] = I
+          current_pop[2,i] = 1
+        } else current_pop[2,i] = current_pop[2,i] + 1
+      }
       
+      else if (current_pop[1,i] == I){ 
+        # first self-quarantine. Then recovery rate. 
+        move <- rbern(1, r_Q)
+        if (move == 1){
+          current_pop[1,i] = QI
+          current_pop[2,i] = current_pop[2,i] + 1
+        } else {
+          prob_success <- pnorm(current_pop[2,i], T_recover, 1) #TODO: update sd based on certain disease
+          move <- rbern(1, prob_success)
+          if (move == 1){
+            current_pop[1,i] = R
+            current_pop[2,i] = 1
+          } else current_pop[2,i] = current_pop[2,i] + 1
+        }
+      }
       
-      S = S + ds
-      E = E + de
-      I = I + di
-      R = R + dr
-      QI = QI + dqi
+      else if (current_pop[1,i] == QE){
+        prob_success <- pnorm(current_pop[2,i], T_incubate, 1) #TODO: update sd based on certain disease
+        move <- rbern(1, prob_success)
+        if (move == 1){
+          current_pop[1,i] = QI
+          current_pop[2,i] = 1
+        } else current_pop[2,i] = current_pop[2,i] + 1
+      }
       
-      QH = QH + dQH()
-      
-      S = S - FP*S
-      
-      SK = QH + QI + I
-      
-      
-      # Save the changes in vector form
-      Sv = c(Sv, S)
-      Ev = c(Ev, E)
-      Iv = c(Iv, I)
-      Rv = c(Rv, R)
-      Qv = c(Qv, QH+QI)
-      SKv = c(SKv, SK)
+      else if (current_pop[1,i] == QI){
+        prob_success <- pnorm(current_pop[2,i], T_recover, 1) #TODO: update sd based on certain disease
+        move <- rbern(1, prob_success)
+        if (move == 1){
+          current_pop[1,i] = R
+          current_pop[2,i] = 1
+        } else current_pop[2,i] = current_pop[2,i] + 1
+      }
     }
-  } 
+    
+    count_states <- table(current_pop[1,])
+    total_pop[t, S] <- count_states["1"]
+    total_pop[t, E] <- count_states["2"]
+    total_pop[t, I] <- count_states["3"]
+    total_pop[t, R] <- count_states["4"]
+    total_pop[t, QS] <- count_states["5"]
+    total_pop[t, QE] <- count_states["6"]
+    total_pop[t, QI] <- count_states["7"]
+    
+    total_pop[t, is.na(total_pop[t,])] <- 0
+    
+    # move people from R back to S at the end of the timestep
+    for (i in 1:N) {
+      if (current_pop[1,i] == R){
+        current_pop[1,i] = S
+        current_pop[2,i] = 0
+      }
+    } 
+  }
   
-  # Turn the results into a datafrome , add a column with sickstick flag, 0 means no sickstick
-  pot <- cbind(Sv, Ev, Iv, Rv, Qv, SKv)
-  colnames(pot) <- c("Uninfected", "Exposed", "Infected", "Recovered", "Quarantined", "Total Sick Days")
-  pot 
+  Q_tot <- total_pop[, "QS"] + total_pop[, "QE"] + total_pop[, "QI"]
+  
+  total_pop.df <- as.data.frame(total_pop)
+  total_pop.df$Q_tot <- Q_tot
+  
+  # Old version of the code
+  
+  # Turn the results into a dataframe , add a column with sickstick flag, 0 means no sickstick
+  # pot <- cbind(Sv, Ev, Iv, Rv, Qv, SKv)
+  # colnames(pot) <- c("Uninfected", "Exposed", "Infected", "Recovered", "Quarantined", "Total Sick Days")
+  # pot 
 }
 
 
@@ -164,7 +210,8 @@ rknot <- function(
   gamma, # Probability of recovery per capita
   sigma # Probability of disease progression
 ){
-  mu <- 1/ST
-  ro <- beta*sigma/((gamma+mu)*(sigma+mu))
-  ro
+  # mu <- 1/ST
+  mu <- 0 # KMB: For now - add birth/death later
+  R0 <- beta*sigma/((gamma+mu)*(sigma+mu))
+  R0
 }
