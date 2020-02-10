@@ -6,8 +6,7 @@ Qr <- 0     # Self-report based quarantine rate
 Tm <- 365   # Observation time in days
 
 
-
-processData <- function(
+runModel <- function(
                         TP, # TP of SickStick
                         TN, # TN of SickStick
                         beta, # Infection rate
@@ -19,24 +18,6 @@ processData <- function(
                         Fq, # Every # of days 
                         Fr # Percentage of population (%) to use
                         ){
-  # if (OS==1) {
-  #   beta = 0.4
-  #   gamma = 0.79
-  #   sigma = 1
-  # }
-  # 
-  # else if (OS==2) {
-  #   beta = 1.6
-  #   gamma = 0.3
-  #   sigma = 1
-  # }
-  # 
-  # else if (OS==5) {
-  #   beta = 1.96
-  #   gamma = 0.13
-  #   sigma = 0.22
-  # }
-  
 
   # Population initialization
   Sv <- S <- (1-Ip) # Susceptible population
@@ -176,7 +157,7 @@ processData <- function(
   # Turn the results into a datafrome , add a column with sickstick flag, 0 means no sickstick
   pot <- cbind(Sv, Ev, Iv, Rv, Qv, SKv)
   colnames(pot) <- c("Uninfected", "Exposed", "Infected", "Recovered", "Quarantined", "Total Sick Days")
-  return(sum(SKv)) 
+  return(sum(SKv))
 }
 
 

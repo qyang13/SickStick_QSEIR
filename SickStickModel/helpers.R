@@ -195,5 +195,5 @@ runModel <- function(
   total_pop.df <- as.data.frame(total_pop)
   total_pop.df$Q_tot <- Q_tot
   colnames(total_pop.df) <- c("Uninfected", "Exposed", "Infected", "Recovered","QS","QE","QI", "Total Quarantined")
-  total_pop.df
+  return(total_pop.df)
 }
