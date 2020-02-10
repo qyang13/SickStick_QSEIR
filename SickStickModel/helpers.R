@@ -1,3 +1,5 @@
+library(simcausal)
+
 # Define, unit time as days
 runModel <- function(
                         T_max, # Total time (days)
@@ -12,7 +14,7 @@ runModel <- function(
                         gamma, # Recovery rate 
                         sigma, # incubation rate
                         r_Q, # Sympotom-based self quarantine rate
-                        r_RS, # Reverse rate R - S, can also be considered as disease reocurrence rate
+                        r_RS # Reverse rate R - S, can also be considered as disease reocurrence rate
   
                         # KMB 1/31: ignoring this params for now
                         # T_Q = 1, # Number of days remained quarantined before clear
@@ -65,7 +67,6 @@ runModel <- function(
   total_pop[t, E] <- count_states["2"]
   total_pop[t, I] <- count_states["3"]
   
-  
   #### KMB: Implement "Serve time" later ####
   #if (ST==0) {mu <- 0} # else {mu <- 1/ST}
   #else {mu <- 0}
@@ -75,7 +76,6 @@ runModel <- function(
   #  Fq <- 0
   #  Fr <- 1
   #}
-  
   
   #### Simulation loop ####
   for (t in 2:T_max) {
@@ -194,24 +194,6 @@ runModel <- function(
   
   total_pop.df <- as.data.frame(total_pop)
   total_pop.df$Q_tot <- Q_tot
-  
-  # Old version of the code
-  
-  # Turn the results into a dataframe , add a column with sickstick flag, 0 means no sickstick
-  # pot <- cbind(Sv, Ev, Iv, Rv, Qv, SKv)
-  # colnames(pot) <- c("Uninfected", "Exposed", "Infected", "Recovered", "Quarantined", "Total Sick Days")
-  # pot 
-}
-
-
-rknot <- function(
-  ST, # Discharge rate (# discharge per day)
-  beta, # Probability of disease transmission per contact
-  gamma, # Probability of recovery per capita
-  sigma # Probability of disease progression
-){
-  # mu <- 1/ST
-  mu <- 0 # KMB: For now - add birth/death later
-  R0 <- beta*sigma/((gamma+mu)*(sigma+mu))
-  R0
+  colnames(total_pop.df) <- c("Uninfected", "Exposed", "Infected", "Recovered","QS","QE","QI", "Total Quarantined")
+  total_pop.df
 }
