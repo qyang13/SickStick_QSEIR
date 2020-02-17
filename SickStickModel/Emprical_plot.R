@@ -1,5 +1,5 @@
 library(ggplot2)
-source("~/Documents/SickStick_QSEIR/SickStickModel/helpers.R")
+source("helpers.R")
 
 ########################################################
 # Defualt parameter seting
