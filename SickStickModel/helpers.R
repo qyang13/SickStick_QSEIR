@@ -197,3 +197,46 @@ runModel <- function(
   colnames(total_pop.df) <- c("Uninfected", "Exposed", "Infected", "Recovered","QS","QE","QI", "Total Quarantined")
   return(total_pop.df)
 }
+
+runMean <- function(
+                    T_max, # Total time (days)
+                    N, # total number of people
+                    SickStick, # If using sickstick (TRUE or FALSE)
+                    
+                    TP, # TP of SickStick
+                    TN, # TN of SickStick
+                    
+                    R0, # r0 value for disease of interest
+                    # beta, # Transmission rate (contact rate * probability of transmission given contact)
+                    gamma, # Recovery rate 
+                    sigma, # incubation rate
+                    r_Q, # Sympotom-based self quarantine rate
+                    r_RS # Reverse rate R - S, can also be considered as disease reocurrence rate
+                  ) {
+  
+  num_iterations <- 100
+  
+  pop_over_time <- array(0L, dim = c(T_max, 8, num_iterations))
+  
+  # Run simulation # of times in order to compute mean and CI of model outputs
+  for (i in 1:num_iterations) {
+    temp <- runModel(T_max,N,SickStick, TP, TN, R0, gamma, sigma, r_Q, r_RS)
+    temp <- as.matrix(temp)
+    pop_over_time[,,i] <- temp
+  }
+  
+  means <- apply(pop_over_time, c(1,2), mean)
+  colnames(means) <- c("S", "E", "I", "R", "QS", "QE", "QI", "Qtot")
+  
+  t_dist <- qt(c(.025, .975), df=(num_iterations - 1)) # t-distribution for alpha = 0.05, n-1 d.f.
+  CI_fun <- function(x) t_dist[2]*sd(x)/sqrt(length(x))
+  
+  CI <- apply(pop_over_time, c(1,2), CI_fun)
+  colnames(CI) <- c("S_CI", "E_CI", "I_CI", "R_CI", "QS_CI", "QE_CI", "QI_CI", "Qtot_CI")
+  
+  # Store mean and CI for each compartment overtime
+  means.df <- as.data.frame(list(means, CI))
+  means.df$time <- 1:T_max
+  
+  return(means.df)
+}
