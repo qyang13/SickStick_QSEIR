@@ -1,7 +1,7 @@
 nsliders = 12
 
 
-dash_sidebar <- dashboardSidebar(width = 300 , 
+dash_sidebar <- dashboardSidebar(width = 400 , 
                         # Outbreak Scenario Selection
                         # box(title = "Outbreak Scenario Selection", color = "grey", title_side = "top left",
                         #     br(),
@@ -12,8 +12,9 @@ dash_sidebar <- dashboardSidebar(width = 300 ,
                         # )
                         
                         setSliderColor(rep("#DF4577", nsliders), seq(1,nsliders)),
-                        column(width = 12, style = "height:800px; overflow-y: scroll;",
+                        column(width = 12, style = "height:900px; overflow-y: scroll;",
                         # SickStick Parameters
+                        br(),
                         box(width = NULL, collapsible = T, collapsed = F, 
                           title = "SickStick Parameters",
                           

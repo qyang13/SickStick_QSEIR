@@ -3,22 +3,26 @@ library(ggplot2)
 library(shinydashboard)
 library(ggpubr)
 library(DT)
+library(shinyWidgets)
+
 library("shinythemes")
 source("helpers.R")
 source("model_tab.R")
 source("table_tab.R")
+source("empirical_tab.R")
+
 source("sidebar_config.R")
 source("style.R")
-library(shinyWidgets)
-dash_header <- dashboardHeader(titleWidth='100%', 
-                               title = span(tags$img(src = "sickstick_logo.png", style = "height: 100%; opacity: 1")
-                               ))
+
+dash_header <- dashboardHeader( 
+                               title = "SickStick Model"
+                               )
 dash_body <- dashboardBody(
   body_style,
   navbarPage(title = NULL,
     model_tab,
     table_tab,
-    tabPanel(title="Empirical Plots", value="empirical_tab", box(img(src = "todo.jpeg"), width = 12))
+    empirical_tab
   )
   
 )
@@ -127,8 +131,8 @@ server <- function(input, output) {
       scale_x_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))))
     print(p)
   })
-  
 
+  
   output$summary_table_nm <- renderDataTable(dat_nm(), options = list(dom = 't',paging = FALSE))
   output$summary_table_ss <- renderDataTable(dat_ss(), options = list(dom = 't',paging = FALSE))
 
@@ -140,3 +144,4 @@ shinyApp(ui = ui, server = server)
 # Code for deployment
 # library(rsconnect)
 # rsconnect::deployApp('~/Documents/SickStick_QSEIR/SickStickModel/')
+
