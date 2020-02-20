@@ -46,11 +46,11 @@ server <- function(input, output) {
   #     ,color = "purple") 
   
   output$sd_with_ss <- renderValueBox({valueBox(subtitle='With SickStick',
-                                                value=as.integer((sum(dat_ss()[,3]+dat_ss()[,8]))/input$N),
+                                                value=as.integer(sum(dat_ss()[,8])/input$N),
                                                 icon=icon("coffee"),
                                                 color = "teal")})
   
-  output$sd_without_ss <- renderValueBox({valueBox(as.integer((sum(dat_nm()[,3]+dat_ss()[,8]))/input$N),
+  output$sd_without_ss <- renderValueBox({valueBox(as.integer((sum(dat_nm()[,8]))/input$N),
                                                    'Without SickStick',
                                                    icon=icon("coffee"),
                                                    color = "red")})
