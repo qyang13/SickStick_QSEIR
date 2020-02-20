@@ -1,3 +1,5 @@
+library(DT)
+
 # Table tab summarizing raw data in tables
 table_tab <- tabPanel(title = "Result Summary", value = "table_tab",
                      h3("Data Summary without SickStick"),

@@ -1,5 +1,7 @@
-nsliders = 12
+library(shinydashboard)
+library(shinyWidgets)
 
+nsliders = 12
 
 dash_sidebar <- dashboardSidebar(width = 400 , 
                         # Outbreak Scenario Selection

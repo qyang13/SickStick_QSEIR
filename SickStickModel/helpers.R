@@ -214,7 +214,7 @@ runMean <- function(
                     r_RS # Reverse rate R - S, can also be considered as disease reocurrence rate
                   ) {
   
-  num_iterations <- 100
+  num_iterations <- 20
   
   pop_over_time <- array(0L, dim = c(T_max, 8, num_iterations))
   
@@ -240,3 +240,19 @@ runMean <- function(
   
   return(means.df)
 }
+
+# Generate a test data.frame
+# test <- runMean(
+#   3*30,
+#   100,
+#   TRUE,
+#   
+#   95, # TP of SickStick X/100
+#   95, # TN of SickStick X/100
+#   
+#   1.5,
+#   1/14,
+#   1/14,
+#   50/100,
+#   50/100
+# )
