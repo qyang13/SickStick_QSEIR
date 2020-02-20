@@ -47,17 +47,17 @@ dash_sidebar <- dashboardSidebar(width = 400 ,
                               sliderInput("T_max", "Total Time (Months):", 
                                           min=0, max=12, value=3, step=1),
                               sliderInput("N", "Total Population:", 
-                                          min=0, max=1000, value=300, step=100),
-                              sliderInput("R0", "Disease Severity (R0) Value):", 
+                                          min=0, max=1000, value=100, step=100),
+                              sliderInput("R0", "Disease Severity (R0) Value:", 
                                           min=0, max=18, value=1.5, step=0.1),
                               sliderInput("gamma", "Recovery time (Days):", 
                                           min=0, max=100, value=14, step=1),
                               sliderInput("sigma", "Incubation time (Days):", 
                                           min=0, max=100, value=14, step=1),
                               sliderInput("r_Q", "Sympotom-based self quarantine rate:", 
-                                          min=0, max=100, value=50, step=1),
+                                          min=0, max=100, value=5, step=1),
                               sliderInput("r_RS", "Disease Reoccurance Rate:", 
-                                          min=0, max=100, value=50, step=1)
+                                          min=0, max=100, value=5, step=1)
                           ),
                     
                         actionButton('run', 'Run Simulation', icon("forward"), width = NULL))

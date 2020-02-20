@@ -39,8 +39,12 @@ body_style <- tags$style(type="text/css", "
           .skin-black .sidebar .box {
                 background-color: #586e75;
           }
-          h3{
+          h3, h4{
             color: white;
+          }
+          #graph_emp{
+              color:#002b36;
+              background-color:#002b36;
           }
 
           

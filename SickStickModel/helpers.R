@@ -241,18 +241,3 @@ runMean <- function(
   return(means.df)
 }
 
-# Generate a test data.frame
-# test <- runMean(
-#   3*30,
-#   100,
-#   TRUE,
-#   
-#   95, # TP of SickStick X/100
-#   95, # TN of SickStick X/100
-#   
-#   1.5,
-#   1/14,
-#   1/14,
-#   50/100,
-#   50/100
-# )

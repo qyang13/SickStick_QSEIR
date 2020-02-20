@@ -3,6 +3,24 @@ library(ggthemes)
 library(shinydashboard)
 
 source("helpers.R")
+load(file="emp_res.Rdata")
+
+plotEmp <- function(df, xlab, cur_settings){
+  p <- ggplot(df,
+         aes(x=Ro, y=Saved, group=Legend)) + 
+    geom_ribbon(aes(ymin=(Saved-CI), ymax=(Saved+CI)), alpha=0.2, fill='#657b83')+
+    ggtitle("") +
+    geom_line(aes(colour = Legend), size=2) +
+    labs(x = xlab, y = "Total Sick Days Saved per Person") +
+    geom_hline(yintercept=0, color="grey", linetype="dashed")+
+    theme_solarized_2(light=FALSE)+
+    scale_colour_solarized('blue')  +
+    theme(strip.text.x = element_text(size=20), axis.text=element_text(size=20),
+          axis.title=element_text(size=20,face="bold"), legend.text=element_text(size=15), plot.subtitle = element_text(size=15), title=element_text(size=20)) + 
+    labs(title = paste("Effect of", xlab, "on SickStick efficacy"),
+           subtitle = cur_settings)
+  return(p)
+}
 
 server <- function(input, output) {
   
@@ -55,12 +73,12 @@ server <- function(input, output) {
                                                    icon=icon("coffee"),
                                                    color = "red")})
   
-  output$ti_with_ss <- renderValueBox({valueBox(as.integer(sum(dat_ss()[,3])),
+  output$ti_with_ss <- renderValueBox({valueBox(as.integer(sum(dat_ss()[,3])/input$gamma),
                                                 'With SickStick',
                                                 icon=icon("hospital"),
                                                 color = "teal")})
   
-  output$ti_without_ss <- renderValueBox({valueBox(as.integer(sum(dat_nm()[,3])),
+  output$ti_without_ss <- renderValueBox({valueBox(as.integer(sum(dat_nm()[,3])/input$gamma),
                                                    'Without SickStick',
                                                    icon=icon("hospital"),
                                                    color = "red")})
@@ -117,4 +135,13 @@ server <- function(input, output) {
   output$summary_table_nm <- renderDataTable(dat_nm(), options = list(dom = 't',paging = FALSE))
   output$summary_table_ss <- renderDataTable(dat_ss(), options = list(dom = 't',paging = FALSE))
   
+  selected <- reactive({input$select})
+  output$graph_emp <- renderPlot({
+    if(selected()==1){plotEmp(ro_sickd, "Ro Value", "N = 100; Incubation Time = 14 days; Recovery Time = 14 days; Self-quarantine rate: 5%")}
+    else if(selected()==2){plotEmp(N_sickd, "Total Population", "Ro = 2.5; Incubation Time = 14 days; Recovery Time = 14 days; Self-quarantine rate: 5%")}
+    else if(selected()==3){plotEmp(gamma_sickd, "Recovery Time (Days)", "N = 100; Ro = 2.5, Incubation Time = 14 days; Self-quarantine rate: 5%")}
+    else if(selected()==4){plotEmp(sigma_sickd, "Incubation Time (Days)", "N = 100; Ro = 2.5, Recovery Time = 14 days; Self-quarantine rate: 5%")}
+    else if(selected()==5){plotEmp(rQ_sickd, "Self-quarantine Rate", "N = 100; Ro = 2.5, Incubation Time = 14 days;  Recovery Time = 14 days")}
+    })
+    
 }
