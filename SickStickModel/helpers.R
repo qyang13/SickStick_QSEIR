@@ -181,13 +181,14 @@ runModel <- function(
     
     total_pop[t, is.na(total_pop[t,])] <- 0
     
-    # move people from R back to S at the end of the timestep
-    for (i in 1:N) {
-      if (current_pop[1,i] == R){
-        current_pop[1,i] = S
-        current_pop[2,i] = 0
-      }
-    } 
+    # KMB: 2/24. For now, don't have people move from R -> S
+    # # move people from R back to S at the end of the timestep
+    # for (i in 1:N) {
+    #   if (current_pop[1,i] == R){
+    #     current_pop[1,i] = S
+    #     current_pop[2,i] = 0
+    #   }
+    # } 
   }
   
   Q_tot <- total_pop[, "QS"] + total_pop[, "QE"] + total_pop[, "QI"]
