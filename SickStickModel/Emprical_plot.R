@@ -9,8 +9,8 @@ SickStick = FALSE
 TP = 75
 FP = 75
 R0 = 2.5 # r0 value for disease of interest
-gamma = 1/14 # Recovery rate
-sigma = 1/14 # incubation rate
+gamma = 1/8 # Recovery rate
+sigma = 1/2 # incubation rate
 r_Q = 0.05 # Sympotom-based self quarantine rate
 r_RS = 0.05 # Reverse rate R - S, can also be considered as disease reocurrence rate
 ########################################################
@@ -68,8 +68,8 @@ p_Ro <-  ggplot(ro_sickd,
             ggtitle("") +
             geom_line(aes(colour = Legend), size=2) +
             labs(x = "Ro Value", y = "Total Sick Days Saved (w/ - wo/) per Person") +
-            geom_hline(yintercept=0, color="grey", linetype="dashed")+
-            theme_solarized_2(light=FALSE)+
+            geom_hline(yintercept=0, color="grey", linetype="dashed") +
+            theme_solarized_2(light=FALSE) +
             scale_colour_solarized('blue')
 
 print(p_Ro)
