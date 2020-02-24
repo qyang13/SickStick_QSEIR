@@ -10,7 +10,7 @@ dash_sidebar <- dashboardSidebar(width = 400 ,
     
     ###########################################################################
     # Column container for all the boxes
-    column(width = 12, style = "height:900px; overflow-y: scroll;",
+    column(width = 12, style = "height:90vh; overflow-y: scroll;",
         #######################################################################
         # SickStick Parameters
         br(),

@@ -21,7 +21,7 @@ sickday_ro=data.frame()
 for (TP in c(75, 85, 95)){
   # Currently Setting TN=TP
   TN = TP
-  for (Ro in seq(0, 20)*0.15) {
+  for (Ro in seq(0, 20)*0.15+0.3) {
     
     sd_nm=runMean(
       T_max, # Total time (days)
