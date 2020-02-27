@@ -33,20 +33,20 @@ server <- function(input, output) {
   # Reactive population data update, only when RUN button is clicked
   env = eventReactive(input$run, {
     if (input$OS == 1) {R0 = 0.5; gamma = 1/8; sigma = 1/2; r_Q = 10/100; r_RS = 100/100}
-    else if (input$OS == 2) {R0 = 0.9; gamma = 1/10; sigma = 1/10; r_Q = 20/100; r_RS =100/100}
-    else if (input$OS == 3) {R0 = 2; gamma = 1/20; sigma = 1/7; r_Q = 50/100; r_RS = 100/100}
+    else if (input$OS == 2) {R0 = 0.9; gamma = 1/10; sigma = 1/10; r_Q = 10/100; r_RS =100/100}
+    else if (input$OS == 3) {R0 = 2; gamma = 1/20; sigma = 1/7; r_Q = 10/100; r_RS = 100/100}
     else if (input$OS == 4) {R0 = 3.5; gamma = 1/20; sigma = 1/14; r_Q = 10/100; r_RS = 100/100}
-    else if (input$OS == 5) {R0 = 9; gamma = 1/10; sigma = 1/10; r_Q = 100/100; r_RS = 100/100}
+    else if (input$OS == 5) {R0 = 9; gamma = 1/10; sigma = 1/10; r_Q = 10/100; r_RS = 100/100}
     else {R0 = input$R0; gamma = 1/input$gamma; sigma = 1/input$sigma; r_Q = input$r_Q/100; r_RS = input$r_RS/100}
     return(c(R0, gamma, sigma, r_Q, r_RS))
   })
 
   dat_nm = eventReactive(input$run, {
     if (input$OS == 1) {R0 = 0.5; gamma = 1/8; sigma = 1/2; r_Q = 10/100; r_RS = 100/100}
-    else if (input$OS == 2) {R0 = 0.9; gamma = 1/10; sigma = 1/10; r_Q = 20/100; r_RS =100/100}
-    else if (input$OS == 3) {R0 = 2; gamma = 1/20; sigma = 1/7; r_Q = 50/100; r_RS = 100/100}
+    else if (input$OS == 2) {R0 = 0.9; gamma = 1/10; sigma = 1/10; r_Q = 10/100; r_RS =100/100}
+    else if (input$OS == 3) {R0 = 2; gamma = 1/20; sigma = 1/7; r_Q = 10/100; r_RS = 100/100}
     else if (input$OS == 4) {R0 = 3.5; gamma = 1/20; sigma = 1/14; r_Q = 10/100; r_RS = 100/100}
-    else if (input$OS == 5) {R0 = 9; gamma = 1/10; sigma = 1/10; r_Q = 100/100; r_RS = 100/100}
+    else if (input$OS == 5) {R0 = 9; gamma = 1/10; sigma = 1/10; r_Q = 10/100; r_RS = 100/100}
     else {R0 = input$R0; gamma = 1/input$gamma; sigma = 1/input$sigma; r_Q = input$r_Q/100; r_RS = input$r_RS/100}
     runMean(
       input$T_max*30, input$N, FALSE,
@@ -55,10 +55,10 @@ server <- function(input, output) {
   })
   dat_ss = eventReactive(input$run, {
     if (input$OS == 1) {R0 = 0.5; gamma = 1/8; sigma = 1/2; r_Q = 10/100; r_RS = 100/100}
-    else if (input$OS == 2) {R0 = 0.9; gamma = 1/10; sigma = 1/10; r_Q = 20/100; r_RS =100/100}
-    else if (input$OS == 3) {R0 = 2; gamma = 1/20; sigma = 1/7; r_Q = 50/100; r_RS = 100/100}
+    else if (input$OS == 2) {R0 = 0.9; gamma = 1/10; sigma = 1/10; r_Q = 10/100; r_RS =100/100}
+    else if (input$OS == 3) {R0 = 2; gamma = 1/20; sigma = 1/7; r_Q = 10/100; r_RS = 100/100}
     else if (input$OS == 4) {R0 = 3.5; gamma = 1/20; sigma = 1/14; r_Q = 10/100; r_RS = 100/100}
-    else if (input$OS == 5) {R0 = 9; gamma = 1/10; sigma = 1/10; r_Q = 100/100; r_RS = 100/100}
+    else if (input$OS == 5) {R0 = 9; gamma = 1/10; sigma = 1/10; r_Q = 10/100; r_RS = 100/100}
     else {R0 = input$R0; gamma = 1/input$gamma; sigma = 1/input$sigma; r_Q = input$r_Q/100; r_RS = input$r_RS/100}    
     runMean(
       input$T_max*30, input$N, TRUE,
@@ -84,13 +84,13 @@ server <- function(input, output) {
   
   #############################################################################
   # Update the display numbers in the value boxes
-  output$sd_with_ss <- shinydashboard::renderValueBox({shinydashboard::valueBox(subtitle='Per Capital Sick Days With SickStick',
+  output$sd_with_ss <- shinydashboard::renderValueBox({shinydashboard::valueBox(subtitle='Per Capita Quarantine Days With SickStick',
                                                                                 value=as.integer(sum(dat_ss()[,8])/input$N),
                                                                                 icon=icon("hospital"),
                                                                                 color = "teal")})
   
   output$sd_without_ss <- shinydashboard::renderValueBox({shinydashboard::valueBox(value=as.integer((sum(dat_nm()[,8]))/input$N),
-                                                                                   subtitle='Per Capital Sick Days Without SickStick',
+                                                                                   subtitle='Per Capita Quarantine Days Without SickStick',
                                                                                    icon=icon("hospital"),
                                                                                    color = "red")})
   
