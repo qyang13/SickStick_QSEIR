@@ -32,38 +32,27 @@ server <- function(input, output) {
   #############################################################################
   # Reactive population data update, only when RUN button is clicked
   env = eventReactive(input$run, {
-    if (input$OS == 1) {R0 = 0.5; gamma = 1/8; sigma = 1/2; r_Q = 10/100; r_RS = 100/100}
-    else if (input$OS == 2) {R0 = 0.9; gamma = 1/10; sigma = 1/10; r_Q = 20/100; r_RS =100/100}
-    else if (input$OS == 3) {R0 = 2; gamma = 1/20; sigma = 1/7; r_Q = 50/100; r_RS = 100/100}
-    else if (input$OS == 4) {R0 = 3.5; gamma = 1/20; sigma = 1/14; r_Q = 10/100; r_RS = 100/100}
-    else if (input$OS == 5) {R0 = 9; gamma = 1/10; sigma = 1/10; r_Q = 100/100; r_RS = 100/100}
+    if (input$OS == 1) {R0 = 0.5; gamma = 1/3; sigma = 1/3; r_Q = 20/100; r_RS = 100/100}
+    else if (input$OS == 2) {R0 = 1; gamma = 1/7; sigma = 1/3; r_Q = 20/100; r_RS =100/100}
+    else if (input$OS == 3) {R0 = 2; gamma = 1/15; sigma = 1/10; r_Q = 20/100; r_RS = 100/100}
+    else if (input$OS == 4) {R0 = 3.5; gamma = 1/20; sigma = 1/14; r_Q = 30/100; r_RS = 100/100}
+    else if (input$OS == 5) {R0 = 9; gamma = 1/20; sigma = 1/5; r_Q = 30/100; r_RS = 100/100}
     else {R0 = input$R0; gamma = 1/input$gamma; sigma = 1/input$sigma; r_Q = input$r_Q/100; r_RS = input$r_RS/100}
     return(c(R0, gamma, sigma, r_Q, r_RS))
   })
 
   dat_nm = eventReactive(input$run, {
-    if (input$OS == 1) {R0 = 0.5; gamma = 1/8; sigma = 1/2; r_Q = 10/100; r_RS = 100/100}
-    else if (input$OS == 2) {R0 = 0.9; gamma = 1/10; sigma = 1/10; r_Q = 20/100; r_RS =100/100}
-    else if (input$OS == 3) {R0 = 2; gamma = 1/20; sigma = 1/7; r_Q = 50/100; r_RS = 100/100}
-    else if (input$OS == 4) {R0 = 3.5; gamma = 1/20; sigma = 1/14; r_Q = 10/100; r_RS = 100/100}
-    else if (input$OS == 5) {R0 = 9; gamma = 1/10; sigma = 1/10; r_Q = 100/100; r_RS = 100/100}
-    else {R0 = input$R0; gamma = 1/input$gamma; sigma = 1/input$sigma; r_Q = input$r_Q/100; r_RS = input$r_RS/100}
     runMean(
       input$T_max*30, input$N, FALSE,
       input$TP, input$TN, 
-      R0, gamma, sigma, r_Q, r_RS)
+      env()[1], env()[2], env()[3], env()[4], env()[5])
   })
+  
   dat_ss = eventReactive(input$run, {
-    if (input$OS == 1) {R0 = 0.5; gamma = 1/8; sigma = 1/2; r_Q = 10/100; r_RS = 100/100}
-    else if (input$OS == 2) {R0 = 0.9; gamma = 1/10; sigma = 1/10; r_Q = 20/100; r_RS =100/100}
-    else if (input$OS == 3) {R0 = 2; gamma = 1/20; sigma = 1/7; r_Q = 50/100; r_RS = 100/100}
-    else if (input$OS == 4) {R0 = 3.5; gamma = 1/20; sigma = 1/14; r_Q = 10/100; r_RS = 100/100}
-    else if (input$OS == 5) {R0 = 9; gamma = 1/10; sigma = 1/10; r_Q = 100/100; r_RS = 100/100}
-    else {R0 = input$R0; gamma = 1/input$gamma; sigma = 1/input$sigma; r_Q = input$r_Q/100; r_RS = input$r_RS/100}    
     runMean(
       input$T_max*30, input$N, TRUE,
       input$TP, input$TN, 
-      R0, gamma, sigma, r_Q, r_RS)
+      env()[1], env()[2], env()[3], env()[4], env()[5])
   })
   
   #############################################################################
@@ -85,11 +74,11 @@ server <- function(input, output) {
   #############################################################################
   # Update the display numbers in the value boxes
   output$sd_with_ss <- shinydashboard::renderValueBox({shinydashboard::valueBox(subtitle='Per Capital Sick Days With SickStick',
-                                                                                value=as.integer(sum(dat_ss()[,8])/input$N),
+                                                                                value=ceiling(sum(dat_ss()[,8])/input$N),
                                                                                 icon=icon("hospital"),
                                                                                 color = "teal")})
   
-  output$sd_without_ss <- shinydashboard::renderValueBox({shinydashboard::valueBox(value=as.integer((sum(dat_nm()[,8]))/input$N),
+  output$sd_without_ss <- shinydashboard::renderValueBox({shinydashboard::valueBox(value=ceiling((sum(dat_nm()[,8]))/input$N),
                                                                                    subtitle='Per Capital Sick Days Without SickStick',
                                                                                    icon=icon("hospital"),
                                                                                    color = "red")})
@@ -108,8 +97,6 @@ server <- function(input, output) {
       
       Indicator=rep(c("Uninfected", "Exposed", "Infected", "Recovered", "Quarantined"), 
                     each=nrow(dat_nm)),
-      
-
       SickStick=rep(0, 5*nrow(dat_nm)))
     
     
@@ -117,7 +104,6 @@ server <- function(input, output) {
       Period = rep(1:nrow(dat_ss),5), 
       Population = c(dat_ss[,1], dat_ss[,2], dat_ss[,3], dat_ss[,4], dat_ss[,8]), 
       PopCI = c(dat_nm[,9], dat_nm[,10], dat_nm[,11], dat_nm[,12], dat_nm[,16]), 
-      
       Indicator=rep(c("Uninfected", "Exposed", "Infected", "Recovered", "Quarantined"), 
                     each=nrow(dat_ss)),
       SickStick=rep(1, 5*nrow(dat_ss)))
@@ -151,20 +137,20 @@ server <- function(input, output) {
     
     long_nm <- data.frame(
       Period = rep(1:nrow(dat_nm),2), 
-      Population = c((dat_nm[,1] +dat_nm[,2]+dat_nm[,4]), (dat_nm[,3]+dat_nm[,8])), 
-      PopCI = c(rowMeans(cbind(dat_nm[,9], dat_nm[,10],  dat_nm[,12])), rowMeans(cbind(dat_nm[,11], dat_nm[,16]))), 
+      Population = c((dat_nm[,1] +dat_nm[,2]+dat_nm[,4]+dat_nm[,3]), (dat_nm[,8])), 
+      PopCI = c(rowMeans(cbind(dat_nm[,9],dat_nm[,11], dat_nm[,10],  dat_nm[,12])), rowMeans(cbind( dat_nm[,16]))), 
       
-      Indicator=rep(c("In Training", "Sick"), 
+      Indicator=rep(c("In Training", "Total Quarantined"), 
                     each=nrow(dat_nm)),
       SickStick=rep(0, 2*nrow(dat_nm)))
     
     
     long_ss <- data.frame(
       Period = rep(1:nrow(dat_ss),2), 
-      Population = c((dat_ss[,1] +dat_ss[,2]+dat_ss[,4]), (dat_ss[,3]+dat_ss[,8])), 
-      PopCI = c(rowMeans(cbind(dat_ss[,9], dat_ss[,10],  dat_ss[,12])), rowMeans(cbind(dat_ss[,11], dat_ss[,16]))), 
+      Population = c((dat_ss[,1] +dat_ss[,2]+dat_ss[,4]+dat_ss[,3]), (dat_ss[,8])), 
+      PopCI = c(rowMeans(cbind(dat_ss[,9], dat_ss[,10], dat_ss[,11], dat_ss[,12])), rowMeans(cbind( dat_ss[,16]))), 
       
-      Indicator=rep(c("In Training", "Sick"), 
+      Indicator=rep(c("In Training", "Total Quarantined"), 
                     each=nrow(dat_ss)),
       SickStick=rep(1, 2*nrow(dat_ss)))
     
