@@ -3,6 +3,8 @@ library(shinyWidgets)
 
 nsliders = 12
 
+### Defines simulation input options (left sidebar) #### 
+
 dash_sidebar <- dashboardSidebar(width = 400 ,
     ###########################################################################
     # Set slider color

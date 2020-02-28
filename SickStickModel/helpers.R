@@ -39,10 +39,10 @@ runModel <- function(
   
   t = 1
   
-  S <- 1
-  E <- 2
-  I <- 3
-  R <- 4
+  S  <- 1
+  E  <- 2
+  I  <- 3
+  R  <- 4
   QS <- 5
   QE <- 6
   QI <- 7
@@ -115,9 +115,10 @@ runModel <- function(
     # Normal Disease Dynamics ###
     # first compute if individual moves compartments, then move and update num days in compartment
     # then compute overall number of people in each compartment
+    
+    # Count number of people that will be infected this day
     transmission_rate <- rnorm(1, beta, 0.05)
     if (transmission_rate > 0 && transmission_rate < 1) {
-      #num_to_infect <- abs(transmission_rate)*(total_pop[t-1,S])/N*(total_pop[t-1, I]-num_to_QI)
       num_to_infect <- rbinom(1, total_pop[t-1, I] - num_to_QI, transmission_rate*(total_pop[t-1,S])/N)
     }
     else if (transmission_rate > 1) {
