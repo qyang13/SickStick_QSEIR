@@ -55,8 +55,8 @@ runModel <- function(
   
   # Set initial population in current_pop and total_pop
   # KMB: 1% in I0 and 1% in E0, may need to change later
-  E0 <- round(N/100)
-  I0 <- round(N/100)
+  E0 <- round(5*N/100)
+  I0 <- round(5*N/100)
   
   current_pop[1, 1:E0] <- E
   current_pop[1, (E0+1):(E0+I0)] <- I
@@ -115,14 +115,33 @@ runModel <- function(
     # Normal Disease Dynamics ###
     # first compute if individual moves compartments, then move and update num days in compartment
     # then compute overall number of people in each compartment
+    transmission_rate <- rnorm(1, beta, 0.05)
+    if (transmission_rate > 0 && transmission_rate < 1) {
+      #num_to_infect <- abs(transmission_rate)*(total_pop[t-1,S])/N*(total_pop[t-1, I]-num_to_QI)
+      num_to_infect <- rbinom(1, total_pop[t-1, I] - num_to_QI, transmission_rate*(total_pop[t-1,S])/N)
+    }
+    else if (transmission_rate > 1) {
+      num_to_infect <- 0
+      while (transmission_rate > 1) {
+        num_to_infect <- num_to_infect + rbinom(1, total_pop[t-1, I] - num_to_QI, 1*(total_pop[t-1,S])/N)
+        transmission_rate <- transmission_rate - 1
+      }
+      num_to_infect <- num_to_infect + rbinom(1, total_pop[t-1, I] - num_to_QI, transmission_rate*(total_pop[t-1,S])/N)
+    }
+    else {num_to_infect <- 0}
     
     for (i in 1:N){
       if (current_pop[1,i] == S){
-        rate <- 1 - (1 - beta)^(total_pop[t-1, I] - num_to_QI) # I needs to be current_pop - sickstick quarantine 
-        move <- rbern(1, rate) 
-        if (move == 1){
-          current_pop[1,i] = E
-          current_pop[2,i] = 1
+        # rate <- 1 - (1 - beta)^(total_pop[t-1, I]/N - num_to_QI) # I needs to be current_pop - sickstick quarantine 
+        # move <- rbern(1, rate) 
+        # if (move == 1){
+        #   current_pop[1,i] = E
+        #   current_pop[2,i] = 1
+        # }
+        if (num_to_infect > 0){
+          current_pop[1,i] <- E
+          current_pop[2,i] <- 1
+          num_to_infect <- num_to_infect - 1
         }
       }
       
