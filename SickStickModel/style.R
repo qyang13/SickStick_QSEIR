@@ -16,15 +16,12 @@ body_style <- tags$style(type="text/css", "
           label {
             font-weight: normal;
           }
-          #sd_with_ss div {
+          #sd_with_ss div, #sd_without_ss div, #qd_with_ss div, #qd_without_ss div {
             height: 200px;
             padding-bottom: 100px;
           }
 
-         #sd_without_ss div{
-            height: 200px;
-            padding-bottom: 100px;
-          }            
+       
            hr {
               background-color:white;
               color:white;
