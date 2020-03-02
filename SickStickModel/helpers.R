@@ -2,27 +2,27 @@ library(simcausal)
 
 # Define, unit time as days
 runModel <- function(
-                        T_max, # Total time (days)
-                        N, # total number of people
-                        SickStick, # If using sickstick (TRUE or FALSE)
+  T_max, # Total time (days)
+  N, # total number of people
+  SickStick, # If using sickstick (TRUE or FALSE)
   
-                        TP, # TP of SickStick
-                        TN, # TN of SickStick
+  TP, # TP of SickStick
+  TN, # TN of SickStick
   
-                        R0, # r0 value for disease of interest
-                        # beta, # Transmission rate (contact rate * probability of transmission given contact)
-                        gamma, # Recovery rate 
-                        sigma, # incubation rate
-                        r_Q, # Sympotom-based self quarantine rate
-                        r_RS # Reverse rate R - S, can also be considered as disease reocurrence rate
+  R0, # r0 value for disease of interest
+  # beta, # Transmission rate (contact rate * probability of transmission given contact)
+  gamma, # Recovery rate 
+  sigma, # incubation rate
+  r_Q, # Sympotom-based self quarantine rate
+  r_RS # Reverse rate R - S, can also be considered as disease reocurrence rate
   
-                        # KMB 1/31: ignoring this params for now
-                        # T_Q = 1, # Number of days remained quarantined before clear
-                        # Stg = 1, # Strategy
-                        # Fq = 1, # Every # of days 
-                        # Fr = 1, # Percentage of population (%) to use
-                        # ST = 10 # Serve time (in months)
-                        ){
+  # KMB 1/31: ignoring this params for now
+  # T_Q = 1, # Number of days remained quarantined before clear
+  # Stg = 1, # Strategy
+  # Fq = 1, # Every # of days 
+  # Fr = 1, # Percentage of population (%) to use
+  # ST = 10 # Serve time (in months)
+){
   
   #### Initialization ####
   # Initialize variables
@@ -220,20 +220,20 @@ runModel <- function(
 }
 
 runMean <- function(
-                    T_max, # Total time (days)
-                    N, # total number of people
-                    SickStick, # If using sickstick (TRUE or FALSE)
-                    
-                    TP, # TP of SickStick
-                    TN, # TN of SickStick
-                    
-                    R0, # r0 value for disease of interest
-                    # beta, # Transmission rate (contact rate * probability of transmission given contact)
-                    gamma, # Recovery rate 
-                    sigma, # incubation rate
-                    r_Q, # Sympotom-based self quarantine rate
-                    r_RS # Reverse rate R - S, can also be considered as disease reocurrence rate
-                  ) {
+  T_max, # Total time (days)
+  N, # total number of people
+  SickStick, # If using sickstick (TRUE or FALSE)
+  
+  TP, # TP of SickStick
+  TN, # TN of SickStick
+  
+  R0, # r0 value for disease of interest
+  # beta, # Transmission rate (contact rate * probability of transmission given contact)
+  gamma, # Recovery rate 
+  sigma, # incubation rate
+  r_Q, # Sympotom-based self quarantine rate
+  r_RS # Reverse rate R - S, can also be considered as disease reocurrence rate
+) {
   
   num_iterations <- 20
   
@@ -261,4 +261,3 @@ runMean <- function(
   
   return(means.df)
 }
-

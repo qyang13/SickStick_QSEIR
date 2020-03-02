@@ -10,7 +10,7 @@ load(file="emp_res.Rdata")
 # Function to plot empirical plots
 plotEmp <- function(df, xlab, cur_settings){
   p <- ggplot(df,
-         aes(x=Ro, y=Saved, group=Legend)) + 
+              aes(x=Ro, y=Saved, group=Legend)) + 
     geom_ribbon(aes(ymin=(Saved-CI), ymax=(Saved+CI)), alpha=0.2, fill='#657b83')+
     ggtitle("") +
     geom_line(aes(colour = Legend), size=2) +
@@ -21,7 +21,7 @@ plotEmp <- function(df, xlab, cur_settings){
     theme(strip.text.x = element_text(size=20), axis.text=element_text(size=20),
           axis.title=element_text(size=20,face="bold"), legend.text=element_text(size=15), plot.subtitle = element_text(size=15), title=element_text(size=20)) + 
     labs(title = paste("Effect of", xlab, "on SickStick efficacy"),
-           subtitle = cur_settings)
+         subtitle = cur_settings)
   return(p)
 }
 
@@ -40,7 +40,7 @@ server <- function(input, output) {
     else {R0 = input$R0; gamma = 1/input$gamma; sigma = 1/input$sigma; r_Q = input$r_Q/100; r_RS = input$r_RS/100}
     return(c(R0, gamma, sigma, r_Q, r_RS))
   })
-
+  
   dat_nm = eventReactive(input$run, {
     if (input$OS == 1) {R0 = 0.5; gamma = 1/8; sigma = 1/2; r_Q = 10/100; r_RS = 100/100}
     else if (input$OS == 2) {R0 = 0.9; gamma = 1/10; sigma = 1/10; r_Q = 10/100; r_RS =100/100}
@@ -84,101 +84,94 @@ server <- function(input, output) {
   
   #############################################################################
   # Update the display numbers in the value boxes
-  output$sd_with_ss <- shinydashboard::renderValueBox({shinydashboard::valueBox(subtitle='Per Capita Quarantine Days With SickStick',
+  output$qd_with_ss <- shinydashboard::renderValueBox({shinydashboard::valueBox(subtitle='Quarantine days per person',
                                                                                 value=as.integer(sum(dat_ss()[,8])/input$N),
                                                                                 icon=icon("hospital"),
                                                                                 color = "teal")})
   
-  output$sd_without_ss <- shinydashboard::renderValueBox({shinydashboard::valueBox(value=as.integer((sum(dat_nm()[,8]))/input$N),
-                                                                                   subtitle='Per Capita Quarantine Days Without SickStick',
+  output$qd_without_ss <- shinydashboard::renderValueBox({shinydashboard::valueBox(value=as.integer((sum(dat_nm()[,8]))/input$N),
+                                                                                   subtitle='Quarantine days per person',
                                                                                    icon=icon("hospital"),
                                                                                    color = "red")})
   
+  output$sd_with_ss <- shinydashboard::renderValueBox({shinydashboard::valueBox(subtitle='Number of days sick at work',
+                                                                                value=as.integer(sum(dat_ss()[,3])/input$N),
+                                                                                icon=icon("bug"),
+                                                                                color = "aqua")})
+  
+  output$sd_without_ss <- shinydashboard::renderValueBox({shinydashboard::valueBox(value=as.integer((sum(dat_nm()[,3]))/input$N),
+                                                                                   subtitle='Number of days sick at work',
+                                                                                   icon=icon("bug"),
+                                                                                   color = "orange")})
+  
   #############################################################################
-  # Graph 1: Detailed Population graph
+  # Graph 1&2: Detailed Population graph
   output$graph1 <- renderPlot({
     dat_nm <- dat_nm()
-    dat_ss <- dat_ss()
-    
     
     long_nm <- data.frame(
       Period = rep(1:nrow(dat_nm),5), 
       Population = c(dat_nm[,1], dat_nm[,2], dat_nm[,3], dat_nm[,4], dat_nm[,8]), 
       PopCI = c(dat_nm[,9], dat_nm[,10], dat_nm[,11], dat_nm[,12], dat_nm[,16]), 
-      
       Indicator=rep(c("Uninfected", "Exposed", "Infected", "Recovered", "Quarantined"), 
-                    each=nrow(dat_nm)),
+                    each=nrow(dat_nm)))
       
-
-      SickStick=rep(0, 5*nrow(dat_nm)))
-    
+    p <- ggplot(long_nm,
+                aes(x=Period/30, y=Population/input$N, group=Indicator)) + 
+      geom_line(aes(colour = Indicator), size=2) + 
+      ggtitle("") +
+      labs(x = "Time (Months)", y = "Fraction of the population") +
+      theme_solarized_2(light=FALSE)+
+      scale_colour_solarized('blue')+
+      geom_ribbon(aes(ymin=(Population-PopCI)/input$N,ymax=(Population+PopCI)/input$N), alpha=0.3, fill='#657b83') +
+      theme(strip.text.x = element_text(size=20), axis.text=element_text(size=20),
+            axis.title=element_text(size=15,face="bold"), legend.text=element_text(size=15)) + 
+      scale_x_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))))
+    print(p)
+  })  
+  
+  
+  output$graph2 <- renderPlot({
+    dat_ss <- dat_ss()
     
     long_ss <- data.frame(
       Period = rep(1:nrow(dat_ss),5), 
       Population = c(dat_ss[,1], dat_ss[,2], dat_ss[,3], dat_ss[,4], dat_ss[,8]), 
-      PopCI = c(dat_nm[,9], dat_nm[,10], dat_nm[,11], dat_nm[,12], dat_nm[,16]), 
-      
+      PopCI = c(dat_ss[,9], dat_ss[,10], dat_ss[,11], dat_ss[,12], dat_ss[,16]), 
       Indicator=rep(c("Uninfected", "Exposed", "Infected", "Recovered", "Quarantined"), 
-                    each=nrow(dat_ss)),
-      SickStick=rep(1, 5*nrow(dat_ss)))
-    
-    long <- rbind(long_nm, long_ss)
-    
-    labels <- c("0" = "Before SickStick", "1" = "After SickStick")
-    
-    p <- ggplot(long,
+                    each=nrow(dat_ss)))
+
+    p <- ggplot(long_ss,
                 aes(x=Period/30, y=Population/input$N, group=Indicator)) + 
-          geom_line(aes(colour = Indicator), size=2) + 
-          ggtitle("") +
-          facet_grid(. ~ SickStick, labeller=labeller(SickStick = labels)) +
-          labs(x = "Time (Months)", y = "Fraction of the population") +
-          theme_linedraw() + 
-          theme_solarized_2(light=FALSE)+
-          scale_colour_solarized('blue')+
-          geom_ribbon(aes(ymin=(Population-PopCI)/input$N,ymax=(Population+PopCI)/input$N), alpha=0.3, fill='#657b83') +
-          theme(strip.text.x = element_text(size=20), axis.text=element_text(size=20),
-                axis.title=element_text(size=15,face="bold"), legend.text=element_text(size=15)) + 
-          scale_x_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))))
+      geom_line(aes(colour = Indicator), size=2) + 
+      ggtitle("") +
+      labs(x = "Time (Months)", y = "Fraction of the population") +
+      theme_solarized_2(light=FALSE)+
+      scale_colour_solarized('blue')+
+      geom_ribbon(aes(ymin=(Population-PopCI)/input$N,ymax=(Population+PopCI)/input$N), alpha=0.3, fill='#657b83') +
+      theme(strip.text.x = element_text(size=20), axis.text=element_text(size=20),
+            axis.title=element_text(size=15,face="bold"), legend.text=element_text(size=15)) + 
+      scale_x_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))))
     print(p)
   })  
   
   #############################################################################
-  # Graph 2: Less detailed Population graph
-  output$graph2 <- renderPlot({
+  # Graph 3&4: Less detailed Population graph
+  output$graph3 <- renderPlot({
     dat_nm <- dat_nm()
-    dat_ss <- dat_ss()
-    
     
     long_nm <- data.frame(
       Period = rep(1:nrow(dat_nm),2), 
-      Population = c((dat_nm[,1] +dat_nm[,2]+dat_nm[,4]), (dat_nm[,3]+dat_nm[,8])), 
-      PopCI = c(rowMeans(cbind(dat_nm[,9], dat_nm[,10],  dat_nm[,12])), rowMeans(cbind(dat_nm[,11], dat_nm[,16]))), 
+      Population = c((dat_nm[,1] +dat_nm[,2]+dat_nm[,3]+dat_nm[,4]), (dat_nm[,8])), 
+      PopCI = c(rowMeans(cbind(dat_nm[,9], dat_nm[,10],  dat_nm[,11],dat_nm[,12])), rowMeans(cbind( dat_nm[,16]))), 
       
-      Indicator=rep(c("In Training", "Sick"), 
-                    each=nrow(dat_nm)),
-      SickStick=rep(0, 2*nrow(dat_nm)))
-    
-    
-    long_ss <- data.frame(
-      Period = rep(1:nrow(dat_ss),2), 
-      Population = c((dat_ss[,1] +dat_ss[,2]+dat_ss[,4]), (dat_ss[,3]+dat_ss[,8])), 
-      PopCI = c(rowMeans(cbind(dat_ss[,9], dat_ss[,10],  dat_ss[,12])), rowMeans(cbind(dat_ss[,11], dat_ss[,16]))), 
-      
-      Indicator=rep(c("In Training", "Sick"), 
-                    each=nrow(dat_ss)),
-      SickStick=rep(1, 2*nrow(dat_ss)))
-    
-    long <- rbind(long_nm, long_ss)
-    
-    labels <- c("0" = "Before SickStick", "1" = "After SickStick")
-    
-    p <- ggplot(long,
+      Indicator=rep(c("In Training", "Quarantined"), 
+                    each=nrow(dat_nm)))
+      p <- ggplot(long_nm,
                 aes(x=Period/30, y=Population/input$N, group=Indicator)) + 
       geom_line(aes(colour = Indicator), size=2) + 
       ggtitle("") +
-      facet_grid(. ~ SickStick, labeller=labeller(SickStick = labels)) +
       labs(x = "Time (Months)", y = "Fraction of the population") +
-      theme_linedraw() + 
       theme_solarized_2(light=FALSE)+
       scale_colour_solarized('blue')+
       geom_ribbon(aes(ymin=(Population-PopCI)/input$N,ymax=(Population+PopCI)/input$N), alpha=0.3, fill='#657b83') +
@@ -188,6 +181,27 @@ server <- function(input, output) {
     print(p)
   })
   
+  output$graph4 <- renderPlot({
+    dat_ss <- dat_ss()
+    long_ss <- data.frame(
+      Period = rep(1:nrow(dat_ss),2), 
+      Population = c((dat_ss[,1] +dat_ss[,2]+dat_ss[,3]+dat_ss[,4]), (dat_ss[,8])), 
+      PopCI = c(rowMeans(cbind(dat_ss[,9], dat_ss[,10],  dat_ss[,11],dat_ss[,12])), rowMeans(cbind( dat_ss[,16]))), 
+      Indicator=rep(c("In Training", "Quarantined"), 
+                    each=nrow(dat_ss)))
+    p <- ggplot(long_ss,
+                aes(x=Period/30, y=Population/input$N, group=Indicator)) + 
+      geom_line(aes(colour = Indicator), size=2) + 
+      ggtitle("") +
+      labs(x = "Time (Months)", y = "Fraction of the population") +
+      theme_solarized_2(light=FALSE)+
+      scale_colour_solarized('blue')+
+      geom_ribbon(aes(ymin=(Population-PopCI)/input$N,ymax=(Population+PopCI)/input$N), alpha=0.3, fill='#657b83') +
+      theme(strip.text.x = element_text(size=20), axis.text=element_text(size=20),
+            axis.title=element_text(size=15,face="bold"), legend.text=element_text(size=15)) + 
+      scale_x_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1)))))
+    print(p)
+  })
   #############################################################################
   # Summary data tables for data tab
   output$summary_table_nm <- renderDataTable(dat_nm(), options = list(dom = 't',paging = FALSE))
@@ -202,5 +216,5 @@ server <- function(input, output) {
     else if(selected()==3){plotEmp(gamma_sickd, "Recovery Time (Days)", "N = 100; Ro = 2.5, Incubation Time = 14 days; Self-quarantine rate: 5%")}
     else if(selected()==4){plotEmp(sigma_sickd, "Incubation Time (Days)", "N = 100; Ro = 2.5, Recovery Time = 14 days; Self-quarantine rate: 5%")}
     else if(selected()==5){plotEmp(rQ_sickd, "Self-quarantine Rate", "N = 100; Ro = 2.5, Incubation Time = 14 days;  Recovery Time = 14 days")}
-    })
+  })
 }
