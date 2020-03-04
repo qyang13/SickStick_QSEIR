@@ -211,10 +211,10 @@ server <- function(input, output) {
   # Empirical plots, calls for the plotEmp function
   selected <- reactive({input$select})
   output$graph_emp <- renderPlot({
-    if(selected()==1){plotEmp(ro_sickd, "Ro Value", "N = 100; Incubation Time = 14 days; Recovery Time = 14 days; Self-quarantine rate: 5%")}
-    else if(selected()==2){plotEmp(N_sickd, "Total Population", "Ro = 2.5; Incubation Time = 14 days; Recovery Time = 14 days; Self-quarantine rate: 5%")}
-    else if(selected()==3){plotEmp(gamma_sickd, "Recovery Time (Days)", "N = 100; Ro = 2.5, Incubation Time = 14 days; Self-quarantine rate: 5%")}
-    else if(selected()==4){plotEmp(sigma_sickd, "Incubation Time (Days)", "N = 100; Ro = 2.5, Recovery Time = 14 days; Self-quarantine rate: 5%")}
-    else if(selected()==5){plotEmp(rQ_sickd, "Self-quarantine Rate", "N = 100; Ro = 2.5, Incubation Time = 14 days;  Recovery Time = 14 days")}
+    if(selected()==1){plotEmp(ro_sickd, "Ro Value", "N = 100; Incubation Time = 10 days; Recovery Time = 4.5 days; Self-quarantine rate: 5%")}
+    else if(selected()==2){plotEmp(N_sickd, "Total Population", "Ro = 2.5; Incubation Time = 10 days; Recovery Time = 4.5 days; Self-quarantine rate: 5%")}
+    else if(selected()==3){plotEmp(gamma_sickd, "Recovery Time (Days)", "N = 100; Ro = 2.5, Incubation Time = 10 days; Self-quarantine rate: 5%")}
+    else if(selected()==4){plotEmp(sigma_sickd, "Incubation Time (Days)", "N = 100; Ro = 2.5, Recovery Time = 4.5 days; Self-quarantine rate: 5%")}
+    else if(selected()==5){plotEmp(rQ_sickd, "Self-quarantine Rate", "N = 100; Ro = 2.5, Incubation Time = 10 days;  Recovery Time = 4.5 days")}
   })
 }

@@ -1,7 +1,8 @@
+setwd("~/Documents/SickStick_QSEIR/SickStickModel/")
+
 library(ggplot2)
 source("helpers.R")
 library(ggthemes)
-
 
 
 # Define, unit time as days
@@ -179,9 +180,9 @@ SickStick = FALSE
 TP = 75
 FP = 75
 R0 = 2.5 # r0 value for disease of interest
-gamma = 1/10 # Recovery rate
+gamma = 1/4.5 # Recovery rate
 sigma = 1/10 # incubation rate
-r_Q = 0.05 # Sympotom-based self quarantine rate
+r_Q = 0.5 # Sympotom-based self quarantine rate
 r_RS = 0.05 # Reverse rate R - S, can also be considered as disease reocurrence rate
 
 ########################################################
@@ -481,7 +482,7 @@ p_N <-  ggplot(N_sickd,
   geom_ribbon(aes(ymin=(Saved-CI), ymax=(Saved+CI)), alpha=0.2, fill='#657b83')+
   ggtitle("") +
   geom_line(aes(colour = Legend), size=2) +
-  labs(x = "Incubation Time", y = "Total Sick Days Saved (w/ - wo/) per Person") +
+  labs(x = "Population", y = "Total Sick Days Saved (w/ - wo/) per Person") +
   geom_hline(yintercept=0, color="grey", linetype="dashed")+
   theme_solarized_2(light=FALSE)+
   scale_colour_solarized('blue')
