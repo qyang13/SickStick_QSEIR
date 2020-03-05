@@ -14,11 +14,11 @@ runModel <- function(
   gamma, # Recovery rate 
   sigma, # incubation rate
   r_Q, # Sympotom-based self quarantine rate
-  r_RS # Reverse rate R - S, can also be considered as disease reocurrence rate
+  r_RS, # Reverse rate R - S, can also be considered as disease reocurrence rate
+  SS_Stg = 0 # implementation strategy - how many days in between sick Stick use i.e. 0 = use everyday
   
   # KMB 1/31: ignoring this params for now
   # T_Q = 1, # Number of days remained quarantined before clear
-  # Stg = 1, # Strategy
   # Fq = 1, # Every # of days 
   # Fr = 1, # Percentage of population (%) to use
   # ST = 10 # Serve time (in months)
@@ -32,8 +32,11 @@ runModel <- function(
   FN <- 1 - TP
   FP <- 1 - TN
   
-  T_recover <- 1/gamma
+  T_contagious <- 1/gamma
   T_incubate <- 1/sigma
+  
+  num_contagious_asym <- 1 # number of days you are contagious before showing symptoms (contagious in compartment E)
+  T_in_I <- T_contagious - num_contagious_asym
   
   beta = R0*gamma
   
@@ -54,9 +57,9 @@ runModel <- function(
   colnames(total_pop) <- c("S", "E", "I", "R", "QS", "QE", "QI")
   
   # Set initial population in current_pop and total_pop
-  # KMB: 1% in I0 and 1% in E0, may need to change later
-  E0 <- round(5*N/100)
-  I0 <- round(5*N/100)
+  # KMB: 2% in I0 and 2% in E0, may need to change later
+  E0 <- round(2*N/100)
+  I0 <- round(2*N/100)
   
   current_pop[1, 1:E0] <- E
   current_pop[1, (E0+1):(E0+I0)] <- I
@@ -86,20 +89,30 @@ runModel <- function(
     if (SickStick == TRUE) {
       
       for (i in 1:N){
-        if (current_pop[1,i] == S) {
-          move <- rbern(1, FP)
-          if (move == 1) current_pop[1,i] = QS
-        }
-        else if (current_pop[1,i] == E) {
-          move <- rbern(1, TP)
-          if (move == 1) current_pop[1,i] = QE
-        }
-        else if (current_pop[1,i] == I) {
-          move <- rbern(1, TP)
-          if (move == 1) {
-            current_pop[1,i] = QI
-            num_to_QI = num_to_QI + 1
-          } 
+        if (t %% (SS_Stg + 1) == 0) {
+          if (current_pop[1,i] == S) {
+            move <- rbern(1, FP)
+            if (move == 1) current_pop[1,i] = QS
+          }
+          else if (current_pop[1,i] == E) {
+            move <- rbern(1, TP)
+            if (move == 1) current_pop[1,i] = QE
+          }
+          else if (current_pop[1,i] == I) {
+            move <- rbern(1, TP)
+            if (move == 1) {
+              current_pop[1,i] = QI
+              num_to_QI = num_to_QI + 1
+            } 
+          }
+          else if (current_pop[1,i] == QS) {
+            move <- rbern(1, TP)
+            if (move == 1) current_pop[1,i] = S
+          }
+          else if (current_pop[1,i] == QE) {
+            move <- rbern(1, FP)
+            if (move == 1) current_pop[1,i] = E
+          }
         }
         else if (current_pop[1,i] == QS) {
           move <- rbern(1, TP)
@@ -118,8 +131,17 @@ runModel <- function(
     
     # Count number of people that will be infected this day
     transmission_rate <- rnorm(1, beta, 0.05)
+    num_E_contag <- 0
+    
+    # Count number of people in E that are contagious
+    for (i in 1:N){
+      if (current_pop[1,i] == E && current_pop[2,i] > (T_incubate - num_contagious_asym)) {
+        num_E_contag <- num_E_contag + 1
+      }
+    }
+                            
     if (transmission_rate > 0 && transmission_rate < 1) {
-      num_to_infect <- rbinom(1, total_pop[t-1, I] - num_to_QI, transmission_rate*(total_pop[t-1,S])/N)
+      num_to_infect <- rbinom(1, total_pop[t-1, I] - num_to_QI + num_E_contag, transmission_rate*(total_pop[t-1,S])/N)
     }
     else if (transmission_rate > 1) {
       num_to_infect <- 0
@@ -162,7 +184,7 @@ runModel <- function(
           current_pop[1,i] = QI
           current_pop[2,i] = current_pop[2,i] + 1
         } else {
-          prob_success <- pnorm(current_pop[2,i], T_recover, 1) #TODO: update sd based on certain disease
+          prob_success <- pnorm(current_pop[2,i], T_contagious - num_contagious_asym, 1) #TODO: update sd based on certain disease
           move <- rbern(1, prob_success)
           if (move == 1){
             current_pop[1,i] = R
@@ -181,7 +203,7 @@ runModel <- function(
       }
       
       else if (current_pop[1,i] == QI){
-        prob_success <- pnorm(current_pop[2,i], T_recover, 1) #TODO: update sd based on certain disease
+        prob_success <- pnorm(current_pop[2,i], T_contagious, 1) #TODO: update sd based on certain disease
         move <- rbern(1, prob_success)
         if (move == 1){
           current_pop[1,i] = R

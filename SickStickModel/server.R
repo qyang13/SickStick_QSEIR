@@ -84,23 +84,28 @@ server <- function(input, output) {
   
   #############################################################################
   # Update the display numbers in the value boxes
-  output$qd_with_ss <- shinydashboard::renderValueBox({shinydashboard::valueBox(subtitle='Quarantine days per person',
-                                                                                value=as.integer(sum(dat_ss()[,8])/input$N),
+  output$workdays_saved <- shinydashboard::renderValueBox({shinydashboard::valueBox(subtitle='Work days saved',
+                                                                                value=as.integer(sum(dat_nm()[,8]) - sum(dat_ss()[,8])), # /input$N),
                                                                                 icon=icon("hospital"),
                                                                                 color = "teal")})
   
-  output$qd_without_ss <- shinydashboard::renderValueBox({shinydashboard::valueBox(value=as.integer((sum(dat_nm()[,8]))/input$N),
-                                                                                   subtitle='Quarantine days per person',
+  output$qd_with_ss <- shinydashboard::renderValueBox({shinydashboard::valueBox(subtitle='Quarantine days',
+                                                                                value=as.integer(sum(dat_ss()[,8])), # /input$N),
+                                                                                icon=icon("hospital"),
+                                                                                color = "teal")})
+  
+  output$qd_without_ss <- shinydashboard::renderValueBox({shinydashboard::valueBox(value=as.integer(sum(dat_nm()[,8])), #/input$N),
+                                                                                   subtitle='Quarantine days',
                                                                                    icon=icon("hospital"),
                                                                                    color = "red")})
   
-  output$sd_with_ss <- shinydashboard::renderValueBox({shinydashboard::valueBox(subtitle='Number of days sick at work',
-                                                                                value=as.integer(sum(dat_ss()[,3])/input$N),
+  output$sd_with_ss <- shinydashboard::renderValueBox({shinydashboard::valueBox(subtitle='Days sick at work',
+                                                                                value=as.integer(sum(dat_ss()[,3])), #/input$N),
                                                                                 icon=icon("bug"),
                                                                                 color = "aqua")})
   
-  output$sd_without_ss <- shinydashboard::renderValueBox({shinydashboard::valueBox(value=as.integer((sum(dat_nm()[,3]))/input$N),
-                                                                                   subtitle='Number of days sick at work',
+  output$sd_without_ss <- shinydashboard::renderValueBox({shinydashboard::valueBox(value=as.integer((sum(dat_nm()[,3]))), #/input$N),
+                                                                                   subtitle='Days sick at work',
                                                                                    icon=icon("bug"),
                                                                                    color = "orange")})
   
