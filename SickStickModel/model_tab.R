@@ -5,8 +5,8 @@ model_tab <- tabPanel(title="Populational Model", value = "model_tab",
                       h4("Simulation Parameters"),
                       fluidRow(
                         box(width=4,gaugeOutput("Ro", height = "120px")),
-                        box(width=4,gaugeOutput("Sigma", height = "120px")),
-                        box(width=4,gaugeOutput("Gamma", height = "120px"))
+                        box(width=4,gaugeOutput("incubate_time", height = "120px")),
+                        box(width=4,gaugeOutput("contagious_time", height = "120px"))
                       ),
                       hr(),
                       h4("Without Diagnostic"),

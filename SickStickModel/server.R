@@ -31,39 +31,45 @@ server <- function(input, output) {
   
   #############################################################################
   # Reactive population data update, only when RUN button is clicked
+  # Note: r_RS = -1 means people remain immune after infection i.e. stay in R
+  #       r_RS = 0 means people return to susceptible after infection      
   env = eventReactive(input$run, {
-    if (input$OS == 1) {R0 = 0.5; gamma = 1/8; sigma = 1/2; r_Q = 10/100; r_RS = 100/100}
-    else if (input$OS == 2) {R0 = 0.9; gamma = 1/10; sigma = 1/10; r_Q = 10/100; r_RS =100/100}
-    else if (input$OS == 3) {R0 = 2; gamma = 1/20; sigma = 1/7; r_Q = 10/100; r_RS = 100/100}
-    else if (input$OS == 4) {R0 = 3.5; gamma = 1/20; sigma = 1/14; r_Q = 10/100; r_RS = 100/100}
-    else if (input$OS == 5) {R0 = 9; gamma = 1/10; sigma = 1/10; r_Q = 10/100; r_RS = 100/100}
-    else {R0 = input$R0; gamma = 1/input$gamma; sigma = 1/input$sigma; r_Q = input$r_Q/100; r_RS = input$r_RS/100}
-    return(c(R0, gamma, sigma, r_Q, r_RS))
+    if (input$OS == 1) {R0 = 0.5; T_contagious = 8; T_incubate = 2; r_Q = 10/100; r_RS = -1}
+    else if (input$OS == 2) {R0 = 0.9; T_contagious = 10; T_incubate = 10; r_Q = 10/100; r_RS = -1}
+    else if (input$OS == 3) {R0 = 2; T_contagious = 20; T_incubate = 7; r_Q = 10/100; r_RS = -1}
+    else if (input$OS == 4) {R0 = 3.5; T_contagious = 20; T_incubate = 14; r_Q = 10/100; r_RS = -1}
+    else if (input$OS == 5) {R0 = 9; T_contagious = 10; T_incubate = 10; r_Q = 10/100; r_RS = -1}
+    else {R0 = input$R0; T_contagious = input$T_contagious; T_incubate = input$T_incubate; r_Q = input$r_Q/100; r_RS = as.integer(input$r_RS)}
+    return(c(R0, T_contagious, T_incubate, r_Q, r_RS))
   })
   
   dat_nm = eventReactive(input$run, {
-    if (input$OS == 1) {R0 = 0.5; gamma = 1/8; sigma = 1/2; r_Q = 10/100; r_RS = 100/100}
-    else if (input$OS == 2) {R0 = 0.9; gamma = 1/10; sigma = 1/10; r_Q = 10/100; r_RS =100/100}
-    else if (input$OS == 3) {R0 = 2; gamma = 1/20; sigma = 1/7; r_Q = 10/100; r_RS = 100/100}
-    else if (input$OS == 4) {R0 = 3.5; gamma = 1/20; sigma = 1/14; r_Q = 10/100; r_RS = 100/100}
-    else if (input$OS == 5) {R0 = 9; gamma = 1/10; sigma = 1/10; r_Q = 10/100; r_RS = 100/100}
-    else {R0 = input$R0; gamma = 1/input$gamma; sigma = 1/input$sigma; r_Q = input$r_Q/100; r_RS = input$r_RS/100}
+    if (input$OS == 1) {R0 = 0.5; T_contagious = 8; T_incubate = 2; r_Q = 10/100; r_RS = -1}
+    else if (input$OS == 2) {R0 = 0.9; T_contagious = 10; T_incubate = 10; r_Q = 10/100; r_RS = -1}
+    else if (input$OS == 3) {R0 = 2; T_contagious = 20; T_incubate = 7; r_Q = 10/100; r_RS = -1}
+    else if (input$OS == 4) {R0 = 3.5; T_contagious = 20; T_incubate = 14; r_Q = 10/100; r_RS = -1}
+    else if (input$OS == 5) {R0 = 9; T_contagious = 10; T_incubate = 10; r_Q = 10/100; r_RS = -1}
+    else {R0 = input$R0; T_contagious = input$T_contagious; T_incubate = input$T_incubate; r_Q = input$r_Q/100; r_RS = as.integer(input$r_RS)}
+    if (input$Stg == 1){SS_stg = 1}
+    else if (input$Stg == 2){SS_stg = input$SS_stg}
     runMean(
       input$T_max*30, input$N, FALSE,
       input$TP, input$TN, 
-      R0, gamma, sigma, r_Q, r_RS)
+      R0, T_contagious, T_incubate, r_Q, r_RS, SS_stg)
   })
   dat_ss = eventReactive(input$run, {
-    if (input$OS == 1) {R0 = 0.5; gamma = 1/8; sigma = 1/2; r_Q = 10/100; r_RS = 100/100}
-    else if (input$OS == 2) {R0 = 0.9; gamma = 1/10; sigma = 1/10; r_Q = 10/100; r_RS =100/100}
-    else if (input$OS == 3) {R0 = 2; gamma = 1/20; sigma = 1/7; r_Q = 10/100; r_RS = 100/100}
-    else if (input$OS == 4) {R0 = 3.5; gamma = 1/20; sigma = 1/14; r_Q = 10/100; r_RS = 100/100}
-    else if (input$OS == 5) {R0 = 9; gamma = 1/10; sigma = 1/10; r_Q = 10/100; r_RS = 100/100}
-    else {R0 = input$R0; gamma = 1/input$gamma; sigma = 1/input$sigma; r_Q = input$r_Q/100; r_RS = input$r_RS/100}    
+    if (input$OS == 1) {R0 = 0.5; T_contagious = 8; T_incubate = 2; r_Q = 10/100; r_RS = -1}
+    else if (input$OS == 2) {R0 = 0.9; T_contagious = 10; T_incubate = 10; r_Q = 10/100; r_RS = -1}
+    else if (input$OS == 3) {R0 = 2; T_contagious = 20; T_incubate = 7; r_Q = 10/100; r_RS = -1}
+    else if (input$OS == 4) {R0 = 3.5; T_contagious = 20; T_incubate = 14; r_Q = 10/100; r_RS = -1}
+    else if (input$OS == 5) {R0 = 9; T_contagious = 10; T_incubate = 10; r_Q = 10/100; r_RS = -1}
+    else {R0 = input$R0; T_contagious = input$T_contagious; T_incubate = input$T_incubate; r_Q = input$r_Q/100; r_RS = as.integer(input$r_RS)}    
+    if (input$Stg == 1){SS_stg = 1}
+    else if (input$Stg == 2){SS_stg = input$SS_stg}
     runMean(
       input$T_max*30, input$N, TRUE,
       input$TP, input$TN, 
-      R0, gamma, sigma, r_Q, r_RS)
+      R0, T_contagious, T_incubate, r_Q, r_RS, SS_stg)
   })
   
   #############################################################################
@@ -72,14 +78,14 @@ server <- function(input, output) {
                                   value=env()[1],
                                   min=0, max=10, gaugeSectors(danger=c(0,10),colors = c('#D9524F')))})
   
-  output$Sigma <- renderGauge({gauge(label='Incubation Time',
+  output$incubate_time <- renderGauge({gauge(label='Incubation Time',
                                      symbol=' Days',
-                                     value=as.integer(1/env()[3]),
+                                     value=as.integer(env()[3]),
                                      min=0, max=20, gaugeSectors(danger=c(0,20),colors = c('#D9524F')))})
   
-  output$Gamma <- renderGauge({gauge(label='Recovery Time',
+  output$contagious_time <- renderGauge({gauge(label='Contagious Time',
                                      symbol=' Days',
-                                     value=as.integer(1/env()[2]),
+                                     value=as.integer(env()[2]),
                                      min=0, max=20, gaugeSectors(danger=c(0,20),colors = c('#D9524F')))})
   
   #############################################################################

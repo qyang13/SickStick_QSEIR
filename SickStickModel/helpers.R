@@ -10,12 +10,12 @@ runModel <- function(
   TN, # TN of SickStick
   
   R0, # r0 value for disease of interest
-  # beta, # Transmission rate (contact rate * probability of transmission given contact)
-  gamma, # Recovery rate 
-  sigma, # incubation rate
+  T_contagious, # number of days you are contagious
+  T_incubate, # number of days from exposure to symptoms
   r_Q, # Sympotom-based self quarantine rate
-  r_RS, # Reverse rate R - S, can also be considered as disease reocurrence rate
-  SS_Stg = 0 # implementation strategy - how many days in between sick Stick use i.e. 0 = use everyday
+  r_RS, # rate from R back to S: if -1, remain in R. if 0, return to S after infection.
+  
+  SS_Stg # implementation strategy - how many days in between sick Stick use i.e. 0 = use everyday
   
   # KMB 1/31: ignoring this params for now
   # T_Q = 1, # Number of days remained quarantined before clear
@@ -32,13 +32,10 @@ runModel <- function(
   FN <- 1 - TP
   FP <- 1 - TN
   
-  T_contagious <- 1/gamma
-  T_incubate <- 1/sigma
-  
-  num_contagious_asym <- 1 # number of days you are contagious before showing symptoms (contagious in compartment E)
+  num_contagious_asym <- 2 # number of days you are contagious before showing symptoms (contagious in compartment E)
   T_in_I <- T_contagious - num_contagious_asym
   
-  beta = R0*gamma
+  beta = R0/T_contagious
   
   t = 1
   
@@ -89,7 +86,7 @@ runModel <- function(
     if (SickStick == TRUE) {
       
       for (i in 1:N){
-        if (t %% (SS_Stg + 1) == 0) {
+        if (t %% SS_Stg == 0) {
           if (current_pop[1,i] == S) {
             move <- rbern(1, FP)
             if (move == 1) current_pop[1,i] = QS
@@ -129,38 +126,33 @@ runModel <- function(
     # first compute if individual moves compartments, then move and update num days in compartment
     # then compute overall number of people in each compartment
     
-    # Count number of people that will be infected this day
+    # Count number of people in E that are contagious
     transmission_rate <- rnorm(1, beta, 0.05)
     num_E_contag <- 0
     
-    # Count number of people in E that are contagious
     for (i in 1:N){
       if (current_pop[1,i] == E && current_pop[2,i] > (T_incubate - num_contagious_asym)) {
         num_E_contag <- num_E_contag + 1
       }
     }
-                            
+    
+    # Count number of people that will be infected this day
+    # Note: num_E_contag already takes into account who moved into QE
     if (transmission_rate > 0 && transmission_rate < 1) {
       num_to_infect <- rbinom(1, total_pop[t-1, I] - num_to_QI + num_E_contag, transmission_rate*(total_pop[t-1,S])/N)
     }
     else if (transmission_rate > 1) {
       num_to_infect <- 0
       while (transmission_rate > 1) {
-        num_to_infect <- num_to_infect + rbinom(1, total_pop[t-1, I] - num_to_QI, 1*(total_pop[t-1,S])/N)
+        num_to_infect <- num_to_infect + rbinom(1, total_pop[t-1, I] - num_to_QI + num_E_contag, 1*(total_pop[t-1,S])/N)
         transmission_rate <- transmission_rate - 1
       }
-      num_to_infect <- num_to_infect + rbinom(1, total_pop[t-1, I] - num_to_QI, transmission_rate*(total_pop[t-1,S])/N)
+      num_to_infect <- num_to_infect + rbinom(1, total_pop[t-1, I] - num_to_QI + num_E_contag, transmission_rate*(total_pop[t-1,S])/N)
     }
     else {num_to_infect <- 0}
     
     for (i in 1:N){
       if (current_pop[1,i] == S){
-        # rate <- 1 - (1 - beta)^(total_pop[t-1, I]/N - num_to_QI) # I needs to be current_pop - sickstick quarantine 
-        # move <- rbern(1, rate) 
-        # if (move == 1){
-        #   current_pop[1,i] = E
-        #   current_pop[2,i] = 1
-        # }
         if (num_to_infect > 0){
           current_pop[1,i] <- E
           current_pop[2,i] <- 1
@@ -184,7 +176,7 @@ runModel <- function(
           current_pop[1,i] = QI
           current_pop[2,i] = current_pop[2,i] + 1
         } else {
-          prob_success <- pnorm(current_pop[2,i], T_contagious - num_contagious_asym, 1) #TODO: update sd based on certain disease
+          prob_success <- pnorm(current_pop[2,i], T_in_I, 1) #TODO: update sd based on certain disease
           move <- rbern(1, prob_success)
           if (move == 1){
             current_pop[1,i] = R
@@ -203,7 +195,7 @@ runModel <- function(
       }
       
       else if (current_pop[1,i] == QI){
-        prob_success <- pnorm(current_pop[2,i], T_contagious, 1) #TODO: update sd based on certain disease
+        prob_success <- pnorm(current_pop[2,i], T_in_I, 1) #TODO: update sd based on certain disease
         move <- rbern(1, prob_success)
         if (move == 1){
           current_pop[1,i] = R
@@ -223,14 +215,16 @@ runModel <- function(
     
     total_pop[t, is.na(total_pop[t,])] <- 0
     
-    # KMB: 2/24. For now, don't have people move from R -> S
-    # # move people from R back to S at the end of the timestep
-    # for (i in 1:N) {
-    #   if (current_pop[1,i] == R){
-    #     current_pop[1,i] = S
-    #     current_pop[2,i] = 0
-    #   }
-    # } 
+    
+    # move people from R back to S at the end of the timestep
+    if (r_RS == 0) {
+      for (i in 1:N) {
+        if (current_pop[1,i] == R){
+          current_pop[1,i] = S
+          current_pop[2,i] = 0
+        }
+      }
+    }
   }
   
   Q_tot <- total_pop[, "QS"] + total_pop[, "QE"] + total_pop[, "QI"]
@@ -250,11 +244,12 @@ runMean <- function(
   TN, # TN of SickStick
   
   R0, # r0 value for disease of interest
-  # beta, # Transmission rate (contact rate * probability of transmission given contact)
-  gamma, # Recovery rate 
-  sigma, # incubation rate
+  T_contagious, # number of days you are contagious
+  T_incubate, # number of days from exposure to symptoms
   r_Q, # Sympotom-based self quarantine rate
-  r_RS # Reverse rate R - S, can also be considered as disease reocurrence rate
+  r_RS, # Reverse rate R - S, can also be considered as disease reocurrence rate
+  
+  SS_Stg # implementation strategy - use SickStick every __ # of days i.e. 1 = use everyday
 ) {
   
   num_iterations <- 20
@@ -263,7 +258,7 @@ runMean <- function(
   
   # Run simulation # of times in order to compute mean and CI of model outputs
   for (i in 1:num_iterations) {
-    temp <- runModel(T_max,N,SickStick, TP, TN, R0, gamma, sigma, r_Q, r_RS)
+    temp <- runModel(T_max,N,SickStick, TP, TN, R0, T_contagious, T_incubate, r_Q, r_RS, SS_Stg)
     temp <- as.matrix(temp)
     pop_over_time[,,i] <- temp
   }
