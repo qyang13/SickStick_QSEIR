@@ -15,7 +15,8 @@ runModel <- function(
   r_Q, # Sympotom-based self quarantine rate
   r_RS, # rate from R back to S: if -1, remain in R. if 0, return to S after infection.
   
-  SS_Stg # implementation strategy - how many days in between sick Stick use i.e. 0 = use everyday
+  SS_Stg, # implementation strategy - how many days in between sick Stick use i.e. 0 = use everyday
+  SS_percent # implementation percentage- what percent of people to use Sick Stick on 
   
   # KMB 1/31: ignoring this params for now
   # T_Q = 1, # Number of days remained quarantined before clear
@@ -82,11 +83,20 @@ runModel <- function(
     
     # SickStick Phase: ####
     # first compute individuals who move with bernoulli distribution, then update compartments accordingly
+    # includes options to use SS on alternating days or on a subset of people 
     num_to_QI = 0
     if (SickStick == TRUE) {
+      # Determine indices of people to use SS on based on SS_percent
+      if (SS_percent == 100){
+        index_to_SS = 1:N
+      }
+      else {
+        num_to_SS <- ceiling(SS_percent/100*N)
+        index_to_SS <- sample(1:N, num_to_SS, replace = FALSE)
+      }
       
-      for (i in 1:N){
-        if (t %% SS_Stg == 0) {
+      for (i in index_to_SS){
+        if (t %% SS_Stg == 0) {     # if SS is being used that day - implement SS
           if (current_pop[1,i] == S) {
             move <- rbern(1, FP)
             if (move == 1) current_pop[1,i] = QS
@@ -111,6 +121,7 @@ runModel <- function(
             if (move == 1) current_pop[1,i] = E
           }
         }
+        # Can still move people out of quarantine on days when SS isn't implemented
         else if (current_pop[1,i] == QS) {
           move <- rbern(1, TP)
           if (move == 1) current_pop[1,i] = S
@@ -249,7 +260,9 @@ runMean <- function(
   r_Q, # Sympotom-based self quarantine rate
   r_RS, # Reverse rate R - S, can also be considered as disease reocurrence rate
   
-  SS_Stg # implementation strategy - use SickStick every __ # of days i.e. 1 = use everyday
+  SS_Stg, # implementation strategy - use SickStick every __ # of days i.e. 1 = use everyday
+  SS_percent # implementation percentage- what percent of people to use Sick Stick on (randomly chosen each day)
+  
 ) {
   
   num_iterations <- 20
@@ -258,7 +271,7 @@ runMean <- function(
   
   # Run simulation # of times in order to compute mean and CI of model outputs
   for (i in 1:num_iterations) {
-    temp <- runModel(T_max,N,SickStick, TP, TN, R0, T_contagious, T_incubate, r_Q, r_RS, SS_Stg)
+    temp <- runModel(T_max,N,SickStick, TP, TN, R0, T_contagious, T_incubate, r_Q, r_RS, SS_Stg, SS_percent)
     temp <- as.matrix(temp)
     pop_over_time[,,i] <- temp
   }

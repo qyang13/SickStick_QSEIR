@@ -64,12 +64,22 @@ server <- function(input, output) {
     else if (input$OS == 4) {R0 = 3.5; T_contagious = 20; T_incubate = 14; r_Q = 10/100; r_RS = -1}
     else if (input$OS == 5) {R0 = 9; T_contagious = 10; T_incubate = 10; r_Q = 10/100; r_RS = -1}
     else {R0 = input$R0; T_contagious = input$T_contagious; T_incubate = input$T_incubate; r_Q = input$r_Q/100; r_RS = as.integer(input$r_RS)}    
-    if (input$Stg == 1){SS_stg = 1}
-    else if (input$Stg == 2){SS_stg = input$SS_stg}
+    if (input$Stg == 1){
+      SS_stg = 1
+      SS_percent = 100
+      }
+    else if (input$Stg == 2){
+      SS_stg = input$SS_stg
+      SS_percent = 100
+    }
+    else if (input$Stg == 3){
+      SS_stg = 1
+      SS_percent = input$SS_percent
+    }
     runMean(
       input$T_max*30, input$N, TRUE,
       input$TP, input$TN, 
-      R0, T_contagious, T_incubate, r_Q, r_RS, SS_stg)
+      R0, T_contagious, T_incubate, r_Q, r_RS, SS_stg, SS_percent)
   })
   
   #############################################################################

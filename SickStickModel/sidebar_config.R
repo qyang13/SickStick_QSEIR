@@ -31,18 +31,18 @@ dash_sidebar <- dashboardSidebar(width = 400 ,
           # KMB: Remove this option for now - not sure if we'll need it
           # sliderInput("DQ", "Consecutive Negative Results in Quarantine (Days):",
           #             min=1, max=10, value=1, step=1),
-          selectInput("Stg", "SickStick Deployment Strategy:", choices = list("Everyday, Everyone" = 1, "Some days, Everyone" = 2),
-                                                                              #"Everyday, Some people" = 3), 
+          selectInput("Stg", "SickStick Deployment Strategy:", choices = list("Everyday, Everyone" = 1, "Some days, Everyone" = 2,
+                                                                              "Everyday, Some people" = 3), 
                                                                               selected = 1),
           conditionalPanel(
             condition = "input.Stg == 2",
             sliderInput("SS_stg", "Every # of days:",
-                        min=1, max=7, value=5, step=1))),
+                        min=1, max=7, value=5, step=1)),
           #KMB: Remove this option for now - TODO: add later
-          # conditionalPanel(
-          #   condition = "input.Stg == 3",
-          #   sliderInput("Fr", "Percentage of population (%):",
-          #               min=0, max=100, value=10, step=1))),
+          conditionalPanel(
+            condition = "input.Stg == 3",
+            sliderInput("SS_percent", "Percentage of population (%):",
+                        min=0, max=100, value=90, step=5))),
 
         #######################################################################
         #Outbreak Scenario Selection
